@@ -1,3 +1,19 @@
 # Godot 4+ specific ignores
 .godot/
+.import/
+mono/
+.editor/
+
+# Build and temporary files
+*.log
+*.tmp
+*.temp
+*.translation
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Android build directory (already included)
 /android/
