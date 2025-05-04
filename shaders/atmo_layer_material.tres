@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://qs5arbxwdyia"]
+
+[ext_resource type="Shader" uid="uid://boo8crx8mx4ph" path="res://shaders/atmo_layer.gdshader" id="1_a83k2"]
+
+[resource]
+shader = ExtResource("1_a83k2")
+shader_parameter/atmo_color = Color(0.5, 0.7, 1, 0.3)
+shader_parameter/blend_strength = 0.6

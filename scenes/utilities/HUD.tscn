@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3 uid="uid://cph362uajlinb"]
+
+[ext_resource type="Script" uid="uid://d2im3shfoylch" path="res://scripts/utilities/HUD.gd" id="1_j1v83"]
+[ext_resource type="Theme" uid="uid://dvo8i7cbhsbhm" path="res://ui/scxreen_text_theme.tres" id="2_d3ol0"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_j1v83")
+
+[node name="ScreenStats" type="HBoxContainer" parent="."]
+z_index = 40
+custom_minimum_size = Vector2(0, 50)
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -50.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 70.0
+grow_horizontal = 2
+
+[node name="FuelLabel" type="RichTextLabel" parent="ScreenStats"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+theme = ExtResource("2_d3ol0")
+scroll_active = false

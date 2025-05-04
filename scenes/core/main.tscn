@@ -1,0 +1,32 @@
+[gd_scene load_steps=8 format=3 uid="uid://djtxg1q6jo8qq"]
+
+[ext_resource type="Script" uid="uid://4t00hty7gk4" path="res://scripts/debug/main_debug.gd" id="1_ebys2"]
+[ext_resource type="PackedScene" uid="uid://dmlexxcah3jeu" path="res://scenes/ship/PlayerShip.tscn" id="1_i4cec"]
+[ext_resource type="Script" uid="uid://bddih6nuqndlj" path="res://scripts/ship/player_ship.gd" id="2_2dmjg"]
+[ext_resource type="PackedScene" uid="uid://cph362uajlinb" path="res://scenes/utilities/HUD.tscn" id="2_44pk5"]
+[ext_resource type="Script" uid="uid://7dnsfn1tthd5" path="res://scripts/world/chunk_manager.gd" id="4_b6u03"]
+[ext_resource type="Script" uid="uid://cyewhriblvum4" path="res://scripts/universe/sector_chunk_manager.gd" id="5_jvmw0"]
+[ext_resource type="Script" uid="uid://dpxeeu4wv0q26" path="res://scripts/utilities/asteroid_spawner.gd" id="6_jvmw0"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_ebys2")
+
+[node name="HUD" parent="." instance=ExtResource("2_44pk5")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="FPSLabel" type="Label" parent="CanvasLayer"]
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="PlayerShip" parent="." instance=ExtResource("1_i4cec")]
+script = ExtResource("2_2dmjg")
+
+[node name="SectorChunkManager" type="Node2D" parent="."]
+script = ExtResource("5_jvmw0")
+
+[node name="ChunkManager" type="Node2D" parent="."]
+script = ExtResource("4_b6u03")
+
+[node name="AsteroidSpawner" type="Node2D" parent="."]
+script = ExtResource("6_jvmw0")

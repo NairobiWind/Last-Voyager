@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://jshr6anvgv2"]
+
+[ext_resource type="Shader" uid="uid://vta8hmf6p6dd" path="res://shaders/soft_light.gdshader" id="1_3cfmm"]
+
+[resource]
+shader = ExtResource("1_3cfmm")
+shader_parameter/light_strength = 1.0
