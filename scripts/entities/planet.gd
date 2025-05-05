@@ -57,8 +57,6 @@ func _ready():
 	atmosphere_sprite.position = base_sprite.position
 	atmosphere_sprite.scale = base_sprite.scale * 1.08
 
-
-
 	# 💡 Iluminación
 	illumination_sprite.modulate = Color(1, 1, 1, 0.4)
 	var illum_material := preload("res://shaders/illum_soft_material.tres").duplicate()
@@ -84,6 +82,9 @@ func _ready():
 	name_label.add_theme_color_override("font_color", Color("#c2f0ff"))
 	name_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	name_label.add_theme_constant_override("outline_size", 2)
+
+	# ✅ Añadir al grupo "planets" para el HUD
+	add_to_group("planets")
 
 func get_random_color(rng: RandomNumberGenerator, saturation := 0.5, value := 1.0) -> Color:
 	var hue = rng.randf()

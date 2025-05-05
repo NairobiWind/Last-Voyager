@@ -7,7 +7,7 @@ func get_chunk_data(chunk_coords: Vector2i) -> Dictionary:
 	var data := {}
 
 	# 🌍 Generación de planeta
-	if rng.randf() < 0.3:
+	if rng.randf() < 0.05:
 		var planet_seed = hash(chunk_coords * Vector2i(13, 47))
 		var base_seed = hash(chunk_coords * Vector2i(71, 23))
 		var illum_index = abs(hash(chunk_coords * Vector2i(5, 89))) % 11

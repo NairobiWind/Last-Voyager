@@ -3,8 +3,10 @@
 [ext_resource type="Script" uid="uid://uenkc65002ew" path="res://scripts/mechanics/loot_drop.gd" id="1_tfxu5"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6tpri"]
+size = Vector2(45, 43.5)
 
-[node name="LootDrop" type="Area2D"]
+[node name="LootDrop" type="Area2D" groups=["loot"]]
+collision_layer = 4
 script = ExtResource("1_tfxu5")
 
 [node name="ColorRect" type="ColorRect" parent="."]
@@ -12,4 +14,6 @@ offset_right = 30.0
 offset_bottom = 30.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(15, 15)
+scale = Vector2(2, 2)
 shape = SubResource("RectangleShape2D_6tpri")

@@ -1,5 +1,7 @@
 extends Area2D
 
+signal destroyed  # ✅ Señal para indicar destrucción
+
 @onready var sprite = $Sprite2D
 @onready var collision = $CollisionShape2D
 
@@ -59,7 +61,6 @@ func _process(delta):
 
 	var new_chunk_coords = chunk_manager.get_chunk_coords(global_position)
 	if new_chunk_coords != current_chunk_coords:
-		# Solo se transfiere si el chunk ya existe
 		if chunk_manager.active_chunks.has(new_chunk_coords):
 			chunk_manager.transfer_asteroid_to_chunk(self, new_chunk_coords)
 			current_chunk_coords = new_chunk_coords
@@ -68,11 +69,18 @@ func _on_area_entered(area):
 	if area.is_in_group("bullets"):
 		durability -= 50
 		if durability <= 0:
-			var spawn_pos := to_global(Vector2.ZERO)
-			var parent := get_tree().get_root()
-			for resource in loot.keys():
-				var drop := loot_scene.instantiate()
-				drop.global_position = spawn_pos
-				drop.setup_resource(resource)
-				parent.call_deferred("add_child", drop)
-			queue_free()
+			destroy()
+
+func destroy():
+	# ✅ Emitimos la señal y destruimos el nodo
+	emit_signal("destroyed")
+
+	var spawn_pos := to_global(Vector2.ZERO)
+	var parent := get_tree().get_root()
+	for resource in loot.keys():
+		var drop := loot_scene.instantiate()
+		drop.global_position = spawn_pos
+		drop.setup_resource(resource)
+		parent.call_deferred("add_child", drop)
+
+	queue_free()

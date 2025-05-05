@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://b41eyn7ks4064"]
+
+[ext_resource type="Texture2D" uid="uid://ccbx6ghx0drvq" path="res://assets/sprites/ui/kenney_game-icons-expansion/PNG/White/2x/joystickR_top.png" id="1_2d4px"]
+[ext_resource type="Texture2D" uid="uid://dssfdaka0073o" path="res://assets/sprites/ui/kenney_game-icons-expansion/PNG/White/2x/joystickR_side.png" id="2_pof4x"]
+[ext_resource type="Texture2D" uid="uid://cgcsdpxh0vurt" path="res://assets/sprites/ui/kenney_game-icons-expansion/PNG/White/2x/fightJ.png" id="3_3no57"]
+
+[node name="TouchControls" type="CanvasLayer"]
+visible = false
+
+[node name="Virutal Joystic" type="TouchScreenButton" parent="."]
+position = Vector2(2022, 710)
+scale = Vector2(2, 2)
+texture_normal = ExtResource("1_2d4px")
+texture_pressed = ExtResource("2_pof4x")
+
+[node name="Button 1" type="TouchScreenButton" parent="."]
+position = Vector2(318, 780)
+scale = Vector2(2, 2)
+texture_normal = ExtResource("3_3no57")
+
+[node name="Button 2" type="TouchScreenButton" parent="."]
+position = Vector2(61, 594)
+scale = Vector2(2, 2)
+texture_normal = ExtResource("3_3no57")

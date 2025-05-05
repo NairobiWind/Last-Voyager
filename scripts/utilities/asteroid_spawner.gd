@@ -1,12 +1,19 @@
 extends Node2D
 
-@export var asteroid_scene: PackedScene  # No se inicializa aquí
+@export var asteroid_scene: PackedScene
 @export var number_of_asteroids: int = 8
 @export var spawn_radius: float = 300.0
 @export var spread_angle_deg: float = 360.0
 @export var speed_range: Vector2 = Vector2(80, 160)
 
 func _ready():
+	if asteroid_scene == null:
+		var path = get_tree().current_scene
+		push_warning("❗ AsteroidSpawner sin escena asignada.")
+		push_warning("→ Nodo: %s | Escena raíz: %s" % [name, path])
+		push_error("Asteroid scene not assigned!")
+		return
+
 	spawn_asteroid_group(global_position)
 
 func spawn_asteroid_group(center: Vector2):
@@ -29,5 +36,7 @@ func spawn_asteroid_group(center: Vector2):
 		var direction = offset.normalized().rotated(rng.randf_range(-0.1, 0.1))
 		var speed = rng.randf_range(speed_range.x, speed_range.y)
 		asteroid.velocity = direction * speed
+
+		asteroid.add_to_group("asteroids")  # ✅ Esta línea es la que añade el grupo
 
 		call_deferred("add_child", asteroid)
