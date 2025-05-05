@@ -1,45 +1,46 @@
 extends CharacterBody2D
+class_name PlayerShip
 
-@onready var camera := $Camera2D
-@onready var loot_collector := $LootCollector
-var bullet_scene: PackedScene = preload("res://scenes/ship/bullet.tscn")
+@export var bullet_scene: PackedScene = preload("res://scenes/ship/bullet.tscn")
 
-const MAX_SPEED = 600.0
-const ACCELERATION = 600.0
-const INITIAL_PUSH = 100.0
-const FRICTION = 100.0
-const BRAKE_FORCE = 300.0
+@onready var camera: Camera2D = $Camera2D
+@onready var loot_collector: Area2D = $LootCollector
+@onready var thrust_particles: GPUParticles2D = $ThrustParticles
 
-var pushing = false
-var just_pushed = false
-var inventory := {}
+const MAX_SPEED: float = 600.0
+const ACCELERATION: float = 600.0
+const INITIAL_PUSH: float = 100.0
+const FRICTION: float = 100.0
+const BRAKE_FORCE: float = 300.0
 
-func _ready():
-	camera.zoom = Vector2(1, 1)
+var pushing: bool = false
+var just_pushed: bool = false
+
+func _ready() -> void:
+	camera.zoom = Vector2.ONE
 	camera.position = Vector2.ZERO
 	camera.make_current()
 
-	# 🟡 Conectar la señal de loot
-	#if loot_collector:
-	#	loot_collector.connect("area_entered", Callable(self, "_on_loot_collector_area_entered"))
+	if not loot_collector.is_connected("area_entered", Callable(self, "_on_loot_collector_area_entered")):
+		loot_collector.connect("area_entered", Callable(self, "_on_loot_collector_area_entered"))
 
-func _physics_process(delta):
+	global_position = GameState.last_position
+	GameStats.fuel = GameState.last_fuel
+
+func _physics_process(delta: float) -> void:
 	GameStats.consume_thrust(delta)
 	z_index = 10
 
-	var mouse_pos = get_global_mouse_position()
-	var target_angle = (mouse_pos - global_position).angle()
-	rotation = lerp_angle(rotation, target_angle, 5.0 * delta)
+	var mp: Vector2 = get_global_mouse_position()
+	rotation = lerp_angle(rotation, (mp - global_position).angle(), 5.0 * delta)
 
-	var direction = Vector2.RIGHT.rotated(rotation)
-
+	var dir: Vector2 = Vector2.RIGHT.rotated(rotation)
 	if GameStats.fuel > 0.0:
 		if Input.is_action_just_pressed("ui_up"):
-			velocity += direction * INITIAL_PUSH
-			just_pushed = true
-			pushing = true
+			velocity += dir * INITIAL_PUSH
+			just_pushed = true; pushing = true
 		elif Input.is_action_pressed("ui_up"):
-			velocity += direction * ACCELERATION * delta
+			velocity += dir * ACCELERATION * delta
 			pushing = true
 		else:
 			pushing = false
@@ -54,59 +55,33 @@ func _physics_process(delta):
 	if velocity.length() > MAX_SPEED:
 		velocity = velocity.normalized() * MAX_SPEED
 
-	var forward = Vector2.RIGHT.rotated(rotation)
-	var aligned_velocity = forward * velocity.dot(forward)
-	velocity = lerp(velocity, aligned_velocity, 0.05)
+	var fwd: Vector2 = Vector2.RIGHT.rotated(rotation)
+	var aligned: Vector2 = fwd * velocity.dot(fwd)
+	velocity = lerp(velocity, aligned, 0.05)
 
-	$ThrustParticles.emitting = Input.is_action_pressed("ui_up") and GameStats.fuel > 0.0
+	thrust_particles.emitting = pushing and GameStats.fuel > 0.0
 
 	move_and_slide()
-	handle_shooting()
+	_handle_shooting()
 
-func handle_shooting():
+	GameState.last_position = global_position
+	GameState.last_fuel = GameStats.fuel
+
+func _handle_shooting() -> void:
 	if Input.is_action_just_pressed("ui_left") and GameStats.fuel > 0.0 and GameStats.consume_shoot():
-		var bullet = bullet_scene.instantiate()
-		var fire_direction = Vector2.RIGHT.rotated(rotation)
-		var spawn_pos = global_position + fire_direction * 60.0
+		var b = bullet_scene.instantiate()
+		var dir = Vector2.RIGHT.rotated(rotation)
+		b.global_position = global_position + dir * 60.0
+		b.velocity = dir * b.speed
+		b.rotation = dir.angle()
+		b.target_position = get_global_mouse_position()
+		get_parent().add_child(b)
 
-		bullet.global_position = spawn_pos
-		bullet.velocity = fire_direction * bullet.speed
-		bullet.rotation = fire_direction.angle()
-		bullet.target_position = get_global_mouse_position()
-		get_parent().add_child(bullet)
-
-# ✅ Señal conectada al área de recolección de loot
 func _on_loot_collector_area_entered(area: Area2D) -> void:
-	print("📦 Entrando en zona de loot:", area)
-
-	if not area.is_in_group("loot"):
-		print("⛔ No es loot.")
+	if not area.is_in_group("loot") or not area.has_method("get_resource_data"):
 		return
-
-	if not area.has_method("get_resource_data"):
-		print("⛔ No tiene método get_resource_data.")
-		return
-
 	var data = area.get_resource_data()
-	print("📋 Datos obtenidos del loot:", data)
-
-	if not data or not data.has("name") or not data.has("amount"):
-		print("❌ Datos inválidos:", data)
+	if not data.has("name") or not data.has("amount"):
 		return
-
-	var resource_name = data["name"]
-	var amount = data["amount"]
-
-	# Guardar en inventario local
-	if inventory.has(resource_name):
-		inventory[resource_name] += amount
-	else:
-		inventory[resource_name] = amount
-
-	print("🪙 Añadido al inventario local:", resource_name, "+", amount)
-
-	# Guardar también en el inventario global
-	if Engine.has_singleton("GameState"):
-		GameState.add_loot(resource_name, amount)
-
+	GameState.add_loot(data["name"], data["amount"])
 	area.queue_free()

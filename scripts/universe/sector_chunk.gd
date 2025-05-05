@@ -1,58 +1,51 @@
+# res://scripts/world/SectorChunk.gd
 extends Node2D
 
-const CHUNK_SIZE = 2400
-var chunk_coords = Vector2i.ZERO
+@export var chunk_coords: Vector2i = Vector2i.ZERO  # Índice del chunk, e.g. (x,y)
+const CHUNK_SIZE: int = 2400
 
-func _ready():
-	var logic = UniverseData.get_chunk_data(chunk_coords)
+func _ready() -> void:
+	# Obtener datos lógicos para este chunk (planetas, asteroides, etc.)
+	var logic: Dictionary = UniverseData.get_chunk_data(chunk_coords)
 
-	# Planeta
+	# --- GENERACIÓN DEL PLANETA ---
 	if logic.has("planet"):
-		var planet_scene = preload("res://scenes/entities/Planet.tscn")
-		var planet = planet_scene.instantiate()
+		var PlanetScene: PackedScene = preload("res://scenes/entities/Planet.tscn")
+		var planet = PlanetScene.instantiate()
 		planet.planet_data = logic["planet"]
-		# Usamos multiplicación para evitar división entera
 		planet.position = Vector2(CHUNK_SIZE * 0.5, CHUNK_SIZE * 0.5)
-		call_deferred("add_child", planet)
+		add_child(planet)
 
-		# 🔄 Escala visual aleatoria pero consistente
-		var scale_rng = RandomNumberGenerator.new()
-		scale_rng.seed = logic["planet"]["seed"]
-		var scale = scale_rng.randf_range(0.7, 1.4)
-		planet.scale = Vector2.ONE * scale
+		var rng = RandomNumberGenerator.new()
+		rng.seed = logic["planet"]["seed"]
+		planet.scale = Vector2.ONE * rng.randf_range(0.7, 1.4)
 
-		call_deferred("add_child", planet)
-		
-	# Asteroides con control de regeneración
+	# --- GENERACIÓN DE ASTEROIDES HASTA EL UMBRAL GLOBAL ---
 	if logic.has("asteroids"):
-		var scene = preload("res://scenes/entities/Asteroid.tscn")
-		for asteroid_data in logic["asteroids"]:
-			# Solo instanciar si estamos por debajo del umbral
-			if GameState.active_asteroids < GameState.regeneration_threshold:
-				var asteroid = scene.instantiate()
-				# Posición relativa al centro del chunk usando float
-				asteroid.position = asteroid_data["offset"] + Vector2(CHUNK_SIZE * 0.5, CHUNK_SIZE * 0.5)
+		var AsteroidScene: PackedScene = preload("res://scenes/entities/Asteroid.tscn")
+		for data in logic["asteroids"]:
+			# Control de límite global de asteroides
+			if GameState.active_asteroids >= GameState.regeneration_threshold:
+				break
 
-				# Dirección normalizada y velocidad
-				var direction = Vector2.RIGHT.rotated(asteroid_data["velocity_angle"]).normalized()
-				asteroid.velocity = direction * asteroid_data["speed"]
+			var ast = AsteroidScene.instantiate()
+			ast.position = data["offset"] + Vector2(CHUNK_SIZE * 0.5, CHUNK_SIZE * 0.5)
+			ast.velocity = Vector2.RIGHT.rotated(data["velocity_angle"]).normalized() * data["speed"]
+			ast.size_index = data["size"]
+			ast.asteroid_material = data["material"]
 
-				# Propiedades del asteroide
-				asteroid.size_index = asteroid_data["size"]
-				asteroid.asteroid_material = asteroid_data["material"]
+			if ast.has_signal("destroyed"):
+				ast.connect("destroyed", Callable(self, "_on_asteroid_destroyed"))
 
-				# Conectar señal de destrucción para decrementar contador
-				if asteroid.has_signal("destroyed"):
-					asteroid.connect("destroyed", Callable(self, "_on_asteroid_destroyed"))
+			add_child(ast)
+			GameState.active_asteroids += 1  # Incremento directo del contador
 
-				add_child(asteroid)
-				GameState.active_asteroids += 1
-func _exit_tree():
-	# Antes de que se destruya el chunk, decrementamos el total si quedan asteroides activos
-	for asteroid in get_children():
-		if asteroid.is_in_group("asteroids"):
-			GameState.active_asteroids = max(0, GameState.active_asteroids - 1)
+func _exit_tree() -> void:
+	# Al desmontar el chunk, descontar todos sus asteroides del total global
+	for child in get_children():
+		if child.is_in_group("asteroids"):
+			GameState.active_asteroids = max(GameState.active_asteroids - 1, 0)
 
-# Función de callback para cuando un asteroide se destruye
-func _on_asteroid_destroyed():
-	GameState.active_asteroids = max(0, GameState.active_asteroids - 1)
+func _on_asteroid_destroyed() -> void:
+	# Callback: un asteroide ha sido destruido, actualizar contador global
+	GameState.active_asteroids = max(GameState.active_asteroids - 1, 0)

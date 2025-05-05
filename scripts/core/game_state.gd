@@ -1,7 +1,12 @@
+# res://scripts/managers/GameState.gd
 extends Node
 
+signal game_loaded(success: bool)
+
+const SAVE_PATH: String = "user://savegame.json"
+
 # Inventario de recursos por tipo
-var inventory := {
+var inventory: Dictionary = {
 	"iron": 0,
 	"nickel": 0,
 	"silicon": 0,
@@ -12,76 +17,70 @@ var inventory := {
 	"dark_matter": 0,
 }
 
-# Estado persistente del jugador
+# Estado persistente del jugador y conteo global de asteroides
 var last_position: Vector2 = Vector2.ZERO
 var last_fuel: float = 100.0
+var active_asteroids: int = 0
+var regeneration_threshold: int = 100
 
-# Control de regeneración de asteroides
-var active_asteroids := 0
-var regeneration_threshold := 100
+func add_loot(resource_name: String, amount: int = 1) -> void:
+	inventory[resource_name] = inventory.get(resource_name, 0) + amount
+	print("📦 Recolectado: %s | Total: %d" % [resource_name, inventory[resource_name]])
 
-# Añadir loot al inventario
-func add_loot(resource_name: String, amount: int = 1):
-	if inventory.has(resource_name):
-		inventory[resource_name] += amount
-	else:
-		inventory[resource_name] = amount
-	print("📦 Recolectado:", resource_name, "| Total:", inventory[resource_name])
-
-# Guardar el estado al cerrar la aplicación
-func _notification(what):
-	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		save_state()
-
-
-# Guardar el estado del juego
-func save_state():
-	var save_data := {
+func save_state() -> bool:
+	var save_data: Dictionary = {
 		"inventory": inventory,
-		"last_position": last_position,
-		"last_fuel": last_fuel
+		"last_position": {"x": last_position.x, "y": last_position.y},
+		"last_fuel": last_fuel,
+		"active_asteroids": active_asteroids,
 	}
-	var file := FileAccess.open("user://savegame.json", FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(save_data))
-		file.close()
-		print("💾 Estado guardado")
-
-
-# Cargar el estado al iniciar
-func load_state():
-	if not FileAccess.file_exists("user://savegame.json"):
-		print("📁 No se encontró archivo de guardado")
-		return
-
-	var file := FileAccess.open("user://savegame.json", FileAccess.READ)
+	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if not file:
-		print("⚠️ No se pudo abrir el archivo de guardado")
-		return
+		push_error("No se pudo abrir %s para escritura" % SAVE_PATH)
+		return false
+	file.store_string(JSON.stringify(save_data))
+	file.close()
+	print("💾 Estado guardado en %s" % SAVE_PATH)
+	return true
 
-	var content := file.get_as_text()
+func load_state() -> bool:
+	if not FileAccess.file_exists(SAVE_PATH):
+		print("📁 No se encontró archivo de guardado en %s" % SAVE_PATH)
+		emit_signal("game_loaded", false)
+		return false
+	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if not file:
+		push_error("No se pudo abrir %s para lectura" % SAVE_PATH)
+		emit_signal("game_loaded", false)
+		return false
+	var content: String = file.get_as_text()
 	file.close()
 
-	var save_data: Dictionary = JSON.parse_string(content)
-	if typeof(save_data) == TYPE_DICTIONARY:
-		inventory = save_data.get("inventory", inventory)
+	var parser: JSON = JSON.new()
+	var err: int = parser.parse(content)
+	if err != OK:
+		push_error("Error parseando JSON: %s en línea %d" % [parser.get_error_message(), parser.get_error_line()])
+		emit_signal("game_loaded", false)
+		return false
 
-		# Recuperar y convertir last_position
-		var pos = save_data.get("last_position", Vector2.ZERO)
-		if typeof(pos) == TYPE_DICTIONARY:
-			last_position = Vector2(pos.get("x", 0.0), pos.get("y", 0.0))
-		elif typeof(pos) == TYPE_STRING:
-			var parts = pos.strip_edges().replace("(", "").replace(")", "").split(",")
-			if parts.size() == 2:
-				last_position = Vector2(parts[0].to_float(), parts[1].to_float())
-			else:
-				last_position = Vector2.ZERO
-		elif typeof(pos) == TYPE_VECTOR2:
-			last_position = pos
-		else:
-			last_position = Vector2.ZERO
+	var data: Dictionary = parser.data
+	if typeof(data) != TYPE_DICTIONARY:
+		push_error("Datos de guardado inválidos: se esperaba Dictionary")
+		emit_signal("game_loaded", false)
+		return false
 
-		last_fuel = save_data.get("last_fuel", 100.0)
-		print("✅ Estado cargado")
-	else:
-		print("⚠️ Error al leer el archivo de guardado")
+	# Aplicar datos cargados
+	inventory = data.get("inventory", inventory).duplicate(true)
+	var pos_item = data.get("last_position", null)
+	if typeof(pos_item) == TYPE_DICTIONARY:
+		last_position = Vector2(pos_item["x"], pos_item["y"])
+	last_fuel = data.get("last_fuel", last_fuel)
+	active_asteroids = data.get("active_asteroids", active_asteroids)
+
+	print("✅ Estado cargado desde %s" % SAVE_PATH)
+	emit_signal("game_loaded", true)
+	return true
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		save_state()
