@@ -1,14 +1,17 @@
-[gd_scene load_steps=7 format=3 uid="uid://djtxg1q6jo8qq"]
+[gd_scene load_steps=8 format=3 uid="uid://djtxg1q6jo8qq"]
 
 [ext_resource type="Script" uid="uid://4t00hty7gk4" path="res://scripts/debug/main_debug.gd" id="1_ebys2"]
 [ext_resource type="PackedScene" uid="uid://dmlexxcah3jeu" path="res://scenes/ship/PlayerShip.tscn" id="1_i4cec"]
 [ext_resource type="PackedScene" uid="uid://cph362uajlinb" path="res://scenes/utilities/HUD.tscn" id="2_44pk5"]
+[ext_resource type="PackedScene" uid="uid://26c8i766jweu" path="res://ui/MiniMap.tscn" id="2_phv0v"]
 [ext_resource type="Script" uid="uid://7dnsfn1tthd5" path="res://scripts/world/chunk_manager.gd" id="4_b6u03"]
 [ext_resource type="PackedScene" uid="uid://b41eyn7ks4064" path="res://scenes/ui/TouchControls.tscn" id="5_44pk5"]
 [ext_resource type="Script" uid="uid://cyewhriblvum4" path="res://scripts/universe/sector_chunk_manager.gd" id="5_jvmw0"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_ebys2")
+
+[node name="MiniMap" parent="." instance=ExtResource("2_phv0v")]
 
 [node name="TouchControls" parent="." instance=ExtResource("5_44pk5")]
 

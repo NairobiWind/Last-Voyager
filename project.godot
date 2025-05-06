@@ -23,6 +23,7 @@ PlanetResources="*res://scripts/resources/planet_resources.gd"
 AsteroidResources="*res://scripts/resources/asteroid_resources.gd"
 GameStats="*res://scripts/core/game_stats.gd"
 GameState="*res://scripts/core/game_state.gd"
+MapManager="*res://scripts/universe/map_manager.gd"
 
 [display]
 

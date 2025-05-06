@@ -26,14 +26,6 @@ func _process(_delta):
 	_process_chunk_unloads()
 	queue_redraw()
 
-#func _draw():
-	if not player:
-		return
-
-	var start = to_local(player.global_position)
-	var dir = player.velocity.normalized() * 150
-	draw_line(start, start + dir, Color.YELLOW, 3)
-	draw_circle(start + dir, 4, Color.YELLOW)
 
 func _update_chunks():
 	var current_chunk = get_chunk_coords(player.global_position)
