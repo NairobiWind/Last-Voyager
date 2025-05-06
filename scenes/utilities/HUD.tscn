@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://cph362uajlinb"]
 
 [ext_resource type="Script" uid="uid://d2im3shfoylch" path="res://scripts/utilities/HUD.gd" id="1_j1v83"]
-[ext_resource type="Theme" uid="uid://dvo8i7cbhsbhm" path="res://ui/scxreen_text_theme.tres" id="2_d3ol0"]
+[ext_resource type="Theme" uid="uid://dvo8i7cbhsbhm" path="res://scenes/ui/scxreen_text_theme.tres" id="2_d3ol0"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_j1v83")

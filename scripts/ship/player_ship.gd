@@ -1,87 +1,116 @@
+# res://scenes/ship/PlayerShip.gd
 extends CharacterBody2D
 class_name PlayerShip
 
-@export var bullet_scene: PackedScene = preload("res://scenes/ship/bullet.tscn")
+@export var bullet_scene   : PackedScene = preload("res://scenes/ship/Bullet.tscn")
+@export var speed          : float       = 600.0
+@export var joystick_path  : NodePath
+@export var touchui_path   : NodePath
 
-@onready var camera: Camera2D = $Camera2D
-@onready var loot_collector: Area2D = $LootCollector
-@onready var thrust_particles: GPUParticles2D = $ThrustParticles
-
-const MAX_SPEED: float = 600.0
+# Parámetros PC
 const ACCELERATION: float = 600.0
 const INITIAL_PUSH: float = 100.0
-const FRICTION: float = 100.0
-const BRAKE_FORCE: float = 300.0
+const FRICTION: float     = 100.0
+const BRAKE_FORCE: float  = 300.0
 
-var pushing: bool = false
-var just_pushed: bool = false
+@onready var joystick      = get_node_or_null(joystick_path)
+@onready var mobile_ctrls  = get_node_or_null(touchui_path)
+@onready var mode_mgr      = get_node("/root/InputModeManager")
+@onready var camera        = $Camera2D
+@onready var loot_collector= $LootCollector
+@onready var thrust_pts    = $ThrustParticles
 
 func _ready() -> void:
 	camera.zoom = Vector2.ONE
-	camera.position = Vector2.ZERO
 	camera.make_current()
-
+	global_position = GameState.last_position
+	GameStats.fuel   = GameState.last_fuel
 	if not loot_collector.is_connected("area_entered", Callable(self, "_on_loot_collector_area_entered")):
 		loot_collector.connect("area_entered", Callable(self, "_on_loot_collector_area_entered"))
 
-	global_position = GameState.last_position
-	GameStats.fuel = GameState.last_fuel
+func _process(_delta: float) -> void:
+	if mobile_ctrls:
+		mobile_ctrls.visible = mode_mgr.touch_mode
 
 func _physics_process(delta: float) -> void:
 	GameStats.consume_thrust(delta)
-	z_index = 10
 
-	var mp: Vector2 = get_global_mouse_position()
-	rotation = lerp_angle(rotation, (mp - global_position).angle(), 5.0 * delta)
+	if mode_mgr.touch_mode:
+		_process_touch(delta)
+	else:
+		_process_pc(delta)
 
-	var dir: Vector2 = Vector2.RIGHT.rotated(rotation)
+	move_and_slide()
+	GameState.last_position = global_position
+	GameState.last_fuel     = GameStats.fuel
+
+func _process_touch(delta: float) -> void:
+	if joystick:
+		var v = joystick.get_vector()
+		if v.length() > 0.1:
+			rotation = lerp_angle(rotation, v.angle(), 10.0 * delta)
+			velocity = v.normalized() * speed
+		else:
+			velocity = Vector2.ZERO
+	else:
+		velocity = Vector2.ZERO
+	thrust_pts.emitting = false
+
+	if Input.is_action_just_pressed("shoot") and GameStats.fuel > 0.0 and GameStats.consume_shoot():
+		_shoot_bullet(true)
+
+func _process_pc(delta: float) -> void:
+	var mp  = get_global_mouse_position()
+	var dir_pc = (mp - global_position).normalized()
+	rotation   = lerp_angle(rotation, dir_pc.angle(), 5.0 * delta)
+
 	if GameStats.fuel > 0.0:
 		if Input.is_action_just_pressed("ui_up"):
-			velocity += dir * INITIAL_PUSH
-			just_pushed = true; pushing = true
+			velocity += dir_pc * INITIAL_PUSH
+			thrust_pts.emitting = true
 		elif Input.is_action_pressed("ui_up"):
-			velocity += dir * ACCELERATION * delta
-			pushing = true
+			velocity += dir_pc * ACCELERATION * delta
+			thrust_pts.emitting = true
 		else:
-			pushing = false
+			thrust_pts.emitting = false
 	else:
-		pushing = false
+		thrust_pts.emitting = false
 
 	if Input.is_action_pressed("brake"):
 		velocity = velocity.move_toward(Vector2.ZERO, BRAKE_FORCE * delta)
-	elif not pushing:
+	else:
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 
-	if velocity.length() > MAX_SPEED:
-		velocity = velocity.normalized() * MAX_SPEED
+	if velocity.length() > speed:
+		velocity = velocity.normalized() * speed
 
-	var fwd: Vector2 = Vector2.RIGHT.rotated(rotation)
-	var aligned: Vector2 = fwd * velocity.dot(fwd)
-	velocity = lerp(velocity, aligned, 0.05)
+	if Input.is_action_just_pressed("shoot") and GameStats.fuel > 0.0 and GameStats.consume_shoot():
+		_shoot_bullet(false)
 
-	thrust_particles.emitting = pushing and GameStats.fuel > 0.0
+func _shoot_bullet(is_touch: bool) -> void:
+	var b    = bullet_scene.instantiate()
+	var dir  : Vector2
+	if is_touch:
+		# móvil: dispara siempre hacia adelante de la nave
+		dir = Vector2.RIGHT.rotated(rotation)
+	else:
+		# PC: dispara hacia la posición del ratón
+		var mp = get_global_mouse_position()
+		dir = (mp - global_position).normalized()
 
-	move_and_slide()
-	_handle_shooting()
+	# Posición de aparición
+	b.global_position  = global_position + dir * 60.0
+	# Importante: asignar target_position para que Bullet.gd calcule bien
+	b.target_position  = b.global_position + dir
+	# Parámetros iniciales (opcional, pues Bullet.gd los recalcula en _ready)
+	b.rotation         = dir.angle()
+	b.velocity         = dir * b.speed
 
-	GameState.last_position = global_position
-	GameState.last_fuel = GameStats.fuel
-
-func _handle_shooting() -> void:
-	if Input.is_action_just_pressed("ui_left") and GameStats.fuel > 0.0 and GameStats.consume_shoot():
-		var b = bullet_scene.instantiate()
-		var dir = Vector2.RIGHT.rotated(rotation)
-		b.global_position = global_position + dir * 60.0
-		b.velocity = dir * b.speed
-		b.rotation = dir.angle()
-		b.target_position = get_global_mouse_position()
-		get_parent().add_child(b)
+	get_parent().add_child(b)
 
 func _on_loot_collector_area_entered(area: Area2D) -> void:
-	if not area.is_in_group("loot") or not area.has_method("get_resource_data"):
-		return
-	var data = area.get_resource_data()
-	if not data.has("name") or not data.has("amount"):
-		return
-	GameState.add_loot(data["name"], data["amount"])
-	area.queue_free()
+	if area.is_in_group("loot") and area.has_method("get_resource_data"):
+		var data = area.get_resource_data()
+		if data.has("name") and data.has("amount"):
+			GameState.add_loot(data["name"], data["amount"])
+		area.queue_free()

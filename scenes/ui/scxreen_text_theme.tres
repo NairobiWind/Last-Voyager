@@ -1,0 +1,6 @@
+[gd_resource type="Theme" format=3 uid="uid://dvo8i7cbhsbhm"]
+
+[resource]
+default_font_size = 25
+ScreenText/font_sizes/ScreenTextSize = 20
+ScreenText/fonts/ScreenTextFont = null
