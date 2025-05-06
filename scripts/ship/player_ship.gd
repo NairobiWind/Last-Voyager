@@ -13,6 +13,9 @@ const INITIAL_PUSH: float = 100.0
 const FRICTION: float     = 100.0
 const BRAKE_FORCE: float  = 300.0
 
+# Umbral de joystick para empezar a acelerar (0.0–1.0)
+const JOYSTICK_DEADZONE_ACCEL: float = 0.3
+
 @onready var joystick      = get_node_or_null(joystick_path)
 @onready var mobile_ctrls  = get_node_or_null(touchui_path)
 @onready var mode_mgr      = get_node("/root/InputModeManager")
@@ -33,7 +36,10 @@ func _process(_delta: float) -> void:
 		mobile_ctrls.visible = mode_mgr.touch_mode
 
 func _physics_process(delta: float) -> void:
+	# Consume fuel según GameStats.consume_thrust
 	GameStats.consume_thrust(delta)
+	# Mantener la nave por encima
+	z_index = 10
 
 	if mode_mgr.touch_mode:
 		_process_touch(delta)
@@ -45,25 +51,50 @@ func _physics_process(delta: float) -> void:
 	GameState.last_fuel     = GameStats.fuel
 
 func _process_touch(delta: float) -> void:
-	if joystick:
-		var v = joystick.get_vector()
-		if v.length() > 0.1:
-			rotation = lerp_angle(rotation, v.angle(), 10.0 * delta)
-			velocity = v.normalized() * speed
-		else:
-			velocity = Vector2.ZERO
-	else:
+	if not joystick:
 		velocity = Vector2.ZERO
-	thrust_pts.emitting = false
+		thrust_pts.emitting = false
+		return
 
+	var v   = joystick.get_vector()
+	var mag = v.length()
+	var dir_norm = v / mag if mag > 0.0 else Vector2.RIGHT
+
+	# Rotación
+	if mag > 0.01:
+		rotation = lerp_angle(rotation, dir_norm.angle(), 10.0 * delta)
+
+	# Aceleración vs deriva
+	if mag > JOYSTICK_DEADZONE_ACCEL and GameStats.fuel > 0.0:
+		# Empuje proporcional al mag
+		velocity += dir_norm * ACCELERATION * delta * mag
+	else:
+		# No empujas: aplicamos fricción
+		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
+
+	# Límite de velocidad
+	if velocity.length() > speed:
+		velocity = velocity.normalized() * speed
+
+	# Deriva: frena componente lateral
+	var forward = Vector2.RIGHT.rotated(rotation)
+	var aligned = forward * velocity.dot(forward)
+	velocity = lerp(velocity, aligned, 0.05)
+
+	# Partículas de thrust solo si empujas
+	thrust_pts.emitting = (mag > JOYSTICK_DEADZONE_ACCEL and GameStats.fuel > 0.0)
+
+	# Disparo táctil
 	if Input.is_action_just_pressed("shoot") and GameStats.fuel > 0.0 and GameStats.consume_shoot():
 		_shoot_bullet(true)
 
 func _process_pc(delta: float) -> void:
-	var mp  = get_global_mouse_position()
+	# Rotación hacia el ratón
+	var mp     = get_global_mouse_position()
 	var dir_pc = (mp - global_position).normalized()
 	rotation   = lerp_angle(rotation, dir_pc.angle(), 5.0 * delta)
 
+	# Empuje / freno con teclado
 	if GameStats.fuel > 0.0:
 		if Input.is_action_just_pressed("ui_up"):
 			velocity += dir_pc * INITIAL_PUSH
@@ -88,21 +119,17 @@ func _process_pc(delta: float) -> void:
 		_shoot_bullet(false)
 
 func _shoot_bullet(is_touch: bool) -> void:
-	var b    = bullet_scene.instantiate()
-	var dir  : Vector2
+	var b   = bullet_scene.instantiate()
+	var dir : Vector2
+
 	if is_touch:
-		# móvil: dispara siempre hacia adelante de la nave
 		dir = Vector2.RIGHT.rotated(rotation)
 	else:
-		# PC: dispara hacia la posición del ratón
 		var mp = get_global_mouse_position()
 		dir = (mp - global_position).normalized()
 
-	# Posición de aparición
 	b.global_position  = global_position + dir * 60.0
-	# Importante: asignar target_position para que Bullet.gd calcule bien
 	b.target_position  = b.global_position + dir
-	# Parámetros iniciales (opcional, pues Bullet.gd los recalcula en _ready)
 	b.rotation         = dir.angle()
 	b.velocity         = dir * b.speed
 
