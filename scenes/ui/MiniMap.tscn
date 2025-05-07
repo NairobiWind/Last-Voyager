@@ -16,4 +16,3 @@ offset_right = 1.19995
 offset_bottom = -0.0400085
 grow_horizontal = 0
 script = ExtResource("1_4a3yr")
-chunk_size_px = 100

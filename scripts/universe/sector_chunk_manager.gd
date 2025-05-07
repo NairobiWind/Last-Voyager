@@ -23,27 +23,28 @@ func _process(_delta):
 		print("🧭 Cambio de chunk a:", current_chunk, "| FPS:", Engine.get_frames_per_second())
 		_update_chunks()
 
+		# 💡 Verificar si el chunk contiene planeta y marcarlo como descubierto
+		var data = UniverseData.get_chunk_data(current_chunk)
+		if data.has("planet"):
+			MapManager.discover_chunk(current_chunk)
+
 	_process_chunk_unloads()
 	queue_redraw()
-
 
 func _update_chunks():
 	var current_chunk = get_chunk_coords(player.global_position)
 	var keep_chunks: Array[Vector2i] = []
 
-	# Mantener 3x3 alrededor del jugador
 	for x in range(-1, 2):
 		for y in range(-1, 2):
 			var offset = Vector2i(x, y)
 			keep_chunks.append(current_chunk + offset)
 
-	# Cargar necesarios y cancelar descargas programadas
 	for coords in keep_chunks:
 		if not active_chunks.has(coords):
 			load_chunk(coords)
 		unload_queue.erase(coords)
 
-	# Marcar para descarga diferida
 	for coords in active_chunks.keys():
 		if not keep_chunks.has(coords) and not unload_queue.has(coords):
 			unload_queue[coords] = Time.get_ticks_msec()
@@ -76,6 +77,18 @@ func unload_chunk(coords: Vector2i):
 
 func get_chunk_coords(pos: Vector2) -> Vector2i:
 	return Vector2i(floor(pos.x / CHUNK_SIZE), floor(pos.y / CHUNK_SIZE))
+
+func get_chunks_with_planets_around(center_chunk: Vector2i, radius: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+
+	for x in range(-radius, radius + 1):
+		for y in range(-radius, radius + 1):
+			var coords = center_chunk + Vector2i(x, y)
+			var data = UniverseData.get_chunk_data(coords)
+			if data.has("planet"):
+				result.append(coords)
+
+	return result
 
 func transfer_asteroid_to_chunk(asteroid: Node2D, new_chunk_coords: Vector2i):
 	if not active_chunks.has(new_chunk_coords):

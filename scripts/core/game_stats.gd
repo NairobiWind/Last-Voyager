@@ -7,6 +7,8 @@ const FUEL_COST_SHOOT = 0.1
 const FUEL_REGEN_AMOUNT = 0.1
 const FUEL_REGEN_INTERVAL = 1.0
 const FUEL_THRUST_COST = 0.1  # fuel por segundo al empujar
+const FUEL_RADAR_COST = 0.1  # fuel por segundo
+var radar_zoom_active: bool = false
 
 var is_thrusting: bool = false
 var timer: float = 0.0
@@ -19,6 +21,8 @@ func _process(delta: float) -> void:
 	if timer >= FUEL_REGEN_INTERVAL:
 		if is_thrusting:
 			fuel = max(fuel - FUEL_THRUST_COST, 0.0)
+		elif radar_zoom_active:
+			fuel = max(fuel - FUEL_RADAR_COST, 0.0)
 		else:
 			fuel = min(fuel + FUEL_REGEN_AMOUNT, FUEL_MAX)
 		timer -= FUEL_REGEN_INTERVAL

@@ -1,6 +1,28 @@
 extends Node
 
+var universes: Dictionary = {}  # universe_id → chunk_cache
+var current_universe_id: String = "default"
+
+func set_current_universe(universe_id: String) -> void:
+	current_universe_id = universe_id
+
+func reset_universe_cache(universe_id: String) -> void:
+	universes.erase(universe_id)
+
+func get_available_universes() -> Array:
+	return universes.keys()
+
+func get_current_chunk_cache() -> Dictionary:
+	if not universes.has(current_universe_id):
+		universes[current_universe_id] = {}
+	return universes[current_universe_id]
+
 func get_chunk_data(chunk_coords: Vector2i) -> Dictionary:
+	var cache = get_current_chunk_cache()
+	if cache.has(chunk_coords):
+		print("✅ Caché usada para", current_universe_id, chunk_coords)
+		return cache[chunk_coords]
+
 	var rng = RandomNumberGenerator.new()
 	rng.seed = hash(chunk_coords)
 
@@ -25,7 +47,7 @@ func get_chunk_data(chunk_coords: Vector2i) -> Dictionary:
 			"name": "PX-%04d" % (abs(planet_seed) % 10000)
 		}
 
-		print("🌍 Planeta generado en chunk:", chunk_coords)
+		print("🌍 Planeta generado en", current_universe_id, "chunk:", chunk_coords)
 
 	# 👾 Enemigos
 	if rng.randf() < 0.02:
@@ -56,4 +78,6 @@ func get_chunk_data(chunk_coords: Vector2i) -> Dictionary:
 
 		data["asteroids"] = asteroids
 
+	# Guardar en caché
+	cache[chunk_coords] = data
 	return data
