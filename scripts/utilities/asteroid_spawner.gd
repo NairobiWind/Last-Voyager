@@ -1,42 +1,70 @@
+# res://scripts/world/SectorChunk.gd
 extends Node2D
 
-@export var asteroid_scene: PackedScene
-@export var number_of_asteroids: int = 8
-@export var spawn_radius: float = 300.0
-@export var spread_angle_deg: float = 360.0
-@export var speed_range: Vector2 = Vector2(80, 160)
+# Índice de chunk (Vector2i)
+@export var chunk_coords: Vector2i = Vector2i.ZERO
 
-func _ready():
-	if asteroid_scene == null:
-		var path = get_tree().current_scene
-		push_warning("❗ AsteroidSpawner sin escena asignada.")
-		push_warning("→ Nodo: %s | Escena raíz: %s" % [name, path])
-		push_error("Asteroid scene not assigned!")
-		return
+# — Parámetros ajustables desde el Inspector —
+@export var max_asteroids_in_chunk: int = 20   # Máx asteroides por chunk
+@export var speed_multiplier: float = 0.1      # Escala la velocidad de cada asteroide
+@export var global_asteroid_limit: int = 200   # Límite global (GameState.regeneration_threshold)
 
-	spawn_asteroid_group(global_position)
+const CHUNK_SIZE: int = 2400
 
-func spawn_asteroid_group(center: Vector2):
-	var rng = RandomNumberGenerator.new()
-	rng.randomize()
+func _ready() -> void:
+	var center = Vector2(CHUNK_SIZE * 0.5, CHUNK_SIZE * 0.5)
+	var logic: Dictionary = UniverseData.get_chunk_data(chunk_coords)
 
-	for i in range(number_of_asteroids):
-		if asteroid_scene == null:
-			push_error("Asteroid scene not assigned!")
-			return
+	# — Planeta procedural (igual que antes) —
+	if logic.has("planet"):
+		var PlanetScene = preload("res://scenes/entities/Planet.tscn")
+		var planet = PlanetScene.instantiate()
+		planet.planet_data = logic["planet"]
+		planet.position = center
+		add_child(planet)
 
-		var asteroid = asteroid_scene.instantiate()
+		var rng = RandomNumberGenerator.new()
+		rng.seed = logic["planet"]["seed"]
+		planet.scale = Vector2.ONE * rng.randf_range(0.7, 1.4)
 
-		var angle_deg = rng.randf_range(-spread_angle_deg / 2, spread_angle_deg / 2)
-		var angle = deg_to_rad(angle_deg)
+	# — Asteroides procedural —
+	if logic.has("asteroids"):
+		var AsteroidScene = preload("res://scenes/entities/Asteroid.tscn")
+		# solo hasta max_asteroids_in_chunk
+		var count = min(max_asteroids_in_chunk, logic["asteroids"].size())
+		for i in range(count):
+			# respeta el límite global
+			if GameState.active_asteroids >= global_asteroid_limit:
+				break
 
-		var offset = Vector2.RIGHT.rotated(angle) * rng.randf_range(spawn_radius * 0.7, spawn_radius)
-		asteroid.global_position = center + offset
+			var data = logic["asteroids"][i]
+			var ast = AsteroidScene.instantiate()
 
-		var direction = offset.normalized().rotated(rng.randf_range(-0.1, 0.1))
-		var speed = rng.randf_range(speed_range.x, speed_range.y)
-		asteroid.velocity = direction * speed
+			ast.position = data["offset"] + center
 
-		asteroid.add_to_group("asteroids")  # ✅ Esta línea es la que añade el grupo
+			# si tu Asteroid usa linear_velocity (RigidBody2D),
+			# o velocity (Area2D/CharacterBody2D), ajusta según su API:
+			if ast.has_method("set_linear_velocity"):
+				ast.linear_velocity = Vector2.RIGHT.rotated(data["velocity_angle"]) \
+										* data["speed"] * speed_multiplier
+			elif ast.has_variable("velocity"):
+				ast.velocity = Vector2.RIGHT.rotated(data["velocity_angle"]) \
+								* data["speed"] * speed_multiplier
 
-		call_deferred("add_child", asteroid)
+			ast.size_index = data["size"]
+			ast.asteroid_material = data["material"]
+
+			if ast.has_signal("destroyed"):
+				ast.connect("destroyed", Callable(self, "_on_asteroid_destroyed"))
+
+			add_child(ast)
+			GameState.active_asteroids += 1
+
+func _exit_tree() -> void:
+	# al desmontar el chunk, descontar sus asteroides
+	for c in get_children():
+		if c.is_in_group("asteroids"):
+			GameState.active_asteroids = max(GameState.active_asteroids - 1, 0)
+
+func _on_asteroid_destroyed() -> void:
+	GameState.active_asteroids = max(GameState.active_asteroids - 1, 0)

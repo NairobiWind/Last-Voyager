@@ -1,62 +1,71 @@
+# res://scripts/world/ChunkManager.gd
 extends Node2D
 
-const CHUNK_SIZE = 2400
-const PADDING_CHUNKS = 1  # margen extra
+# --- Configuración ---
+const CHUNK_SIZE         = 2400                           # píxels por chunk
+const PADDING_CHUNKS     = 0                              # margen extra en chunks
+const PLAYER_MARGIN_SIZE = Vector2(2600, 1300)           # zona de interés en píxels
+
+# Cuántos chunks cubre la mitad de PLAYER_MARGIN_SIZE
+const MARGIN_CHUNKS_X = int(ceil((PLAYER_MARGIN_SIZE.x * 0.5) / CHUNK_SIZE))
+const MARGIN_CHUNKS_Y = int(ceil((PLAYER_MARGIN_SIZE.y * 0.5) / CHUNK_SIZE))
 
 const ChunkScene = preload("res://scenes/world/Chunk.tscn")
 
-var active_chunks = {}
-var player: Node2D
-var camera: Camera2D
-var last_visible_rect := Rect2()
+# --- Estado ---
+var active_chunks : Dictionary = {}   # Vector2i -> Nodo de chunk
+var player         : Node2D
+var last_chunk     : Vector2i
 
-func _ready():
-	player = get_parent().get_node("PlayerShip")
-	camera = get_viewport().get_camera_2d()
+func _ready() -> void:
+	player     = get_parent().get_node("PlayerShip")
+	last_chunk = _get_player_chunk()
 	_update_chunks()
+	set_process(true)
 
-func _process(_delta):
-	if camera:
-		var visible_rect = get_camera_visible_rect()
-		if visible_rect != last_visible_rect:
-			last_visible_rect = visible_rect
-			_update_chunks()
+func _process(_delta: float) -> void:
+	var current = _get_player_chunk()
+	if current != last_chunk:
+		last_chunk = current
+		_update_chunks()
 
-func get_camera_visible_rect() -> Rect2:
-	var screen_size = get_viewport_rect().size
-	var top_left = camera.global_position - (screen_size / 2)
-	var rect = Rect2(top_left, screen_size)
-	return rect.grow(CHUNK_SIZE * PADDING_CHUNKS)
+func _get_player_chunk() -> Vector2i:
+	return Vector2i(
+		floor(player.global_position.x / CHUNK_SIZE),
+		floor(player.global_position.y / CHUNK_SIZE)
+	)
 
-func _update_chunks():
-	var from = get_chunk_coords(last_visible_rect.position)
-	var to = get_chunk_coords(last_visible_rect.end)
+func _update_chunks() -> void:
+	var cx = last_chunk.x
+	var cy = last_chunk.y
+	var from_x = cx - MARGIN_CHUNKS_X - PADDING_CHUNKS
+	var to_x   = cx + MARGIN_CHUNKS_X + PADDING_CHUNKS
+	var from_y = cy - MARGIN_CHUNKS_Y - PADDING_CHUNKS
+	var to_y   = cy + MARGIN_CHUNKS_Y + PADDING_CHUNKS
 
-	var required_chunks := {}
-
-	for x in range(from.x, to.x + 1):
-		for y in range(from.y, to.y + 1):
+	# Marcar qué chunks necesitamos
+	var required : Dictionary = {}
+	for x in range(from_x, to_x + 1):
+		for y in range(from_y, to_y + 1):
 			var coords = Vector2i(x, y)
-			required_chunks[coords] = true
+			required[coords] = true
 			if not active_chunks.has(coords):
-				load_chunk(coords)
+				_load_chunk(coords)
 
-	# Descargar chunks que ya no se ven
+	# Descargar los que ya no son necesarios
 	for coords in active_chunks.keys():
-		if not required_chunks.has(coords):
-			unload_chunk(coords)
+		if not required.has(coords):
+			_unload_chunk(coords)
 
-func get_chunk_coords(pos: Vector2) -> Vector2i:
-	return Vector2i(floor(pos.x / CHUNK_SIZE), floor(pos.y / CHUNK_SIZE))
-
-func load_chunk(pos: Vector2i):
+func _load_chunk(coords: Vector2i) -> void:
 	var chunk = ChunkScene.instantiate()
-	chunk.position = pos * CHUNK_SIZE
-	chunk.chunk_coords = pos
+	chunk.position     = coords * CHUNK_SIZE
+	chunk.chunk_coords = coords
 	add_child(chunk)
-	active_chunks[pos] = chunk
+	active_chunks[coords] = chunk
 
-func unload_chunk(pos: Vector2i):
-	if active_chunks.has(pos):
-		active_chunks[pos].queue_free()
-		active_chunks.erase(pos)
+func _unload_chunk(coords: Vector2i) -> void:
+	var chunk = active_chunks[coords]
+	if chunk:
+		chunk.queue_free()
+	active_chunks.erase(coords)

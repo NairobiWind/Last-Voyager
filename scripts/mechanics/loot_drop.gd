@@ -2,7 +2,7 @@
 extends Area2D
 class_name LootDrop
 
-@export var lifetime: float = 5.0
+@export var lifetime: float = 30.0
 
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 

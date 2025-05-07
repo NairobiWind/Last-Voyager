@@ -26,19 +26,19 @@ func _draw() -> void:
 	if not player_ship or not map_manager:
 		return
 
-	var size2d = size
-	var center = size2d * 0.5
-	var radius = min(size2d.x, size2d.y) * 0.5
+	var size2d    = size
+	var center    = size2d * 0.5
+	var radius    = min(size2d.x, size2d.y) * 0.5
 
-	# 1) Fondo circular verde semitransparente
+	# 1) Fondo circular verde semitransparente (siempre dibujado)
 	draw_circle(center, radius, Color(0.1, 0.5, 0.2, 0.5))
 
-	var W = float(world_chunk_size)
-	var player_pos = player_ship.global_position
-	var pc_x = floor(player_pos.x / W)
-	var pc_y = floor(player_pos.y / W)
+	var W           = float(world_chunk_size)
+	var player_pos  = player_ship.global_position
+	var pc_x        = floor(player_pos.x / W)
+	var pc_y        = floor(player_pos.y / W)
 
-	# 2) Dibujar planetas cacheados solo dentro del círculo
+	# 2) Dibujar planetas cacheados solo dentro del círculo 3×3
 	for coords in map_manager.planet_chunks:
 		var dx = coords.x - pc_x
 		var dy = coords.y - pc_y
@@ -46,13 +46,15 @@ func _draw() -> void:
 			continue
 
 		# cálculo posición en pixeles relativos
-		var planet_world = Vector2((coords.x + 0.5) * W, (coords.y + 0.5) * W)
-		var delta_pixel = (planet_world - player_pos) / W * chunk_size_px
-		var draw_pos = center + delta_pixel
+		var planet_world = Vector2((coords.x + 0.5) * W,
+								   (coords.y + 0.5) * W)
+		var delta_pixel  = (planet_world - player_pos) / W * chunk_size_px
+		var draw_pos     = center + delta_pixel
 
-		# culling: únicamente si el icono queda dentro del círculo
+		# culling: imprime solo si está dentro del círculo
 		if draw_pos.distance_to(center) <= radius - planet_icon_radius:
-			draw_circle(draw_pos, planet_icon_radius, Color(1, 0.2, 0.2))
+			draw_circle(draw_pos, planet_icon_radius,
+						Color(1, 0.2, 0.2))
 
-	# 3) Punto del jugador encima de todo (en el centro)
+	# 3) Punto del jugador encima de todo (siempre en el centro)
 	draw_circle(center, player_icon_radius, Color(1, 1, 1))

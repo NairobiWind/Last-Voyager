@@ -1,9 +1,10 @@
-extends Area2D
+# res://scenes/entities/Asteroid.gd
+extends RigidBody2D
 
-signal destroyed  # ✅ Señal para indicar destrucción
+signal destroyed
 
-@onready var sprite = $Sprite2D
-@onready var collision = $CollisionShape2D
+@onready var sprite: Sprite2D                         = $Sprite2D
+@onready var collision_player_shape: CollisionShape2D = $CollisionPlayer
 
 const SPRITES = [
 	preload("res://assets/sprites/ship/Kenny Simple Space/PNG/Retina/meteor_detailedLarge.png"),
@@ -16,71 +17,85 @@ const SPRITES = [
 	preload("res://assets/sprites/ship/Kenny Simple Space/PNG/Retina/meteor_squareSmall.png")
 ]
 
-var velocity: Vector2 = Vector2.ZERO
-var rotation_speed: float = 0.0
-var current_chunk_coords: Vector2i
+@export var durability        : int        = 100
+@export var loot              : Dictionary = {}
+@export var size_index        : int        = -1
+@export var asteroid_material : Dictionary = {}
+
+# Daño bruto al chocar con la nave
+var damage: int = 1
+
+# Chunk‐tracking
 var chunk_manager: Node
+var current_chunk_coords: Vector2i
 
-@export var durability: int = 100
-@export var loot: Dictionary = {}
-@export var size_index: int = -1
-@export var asteroid_material: Dictionary = {}
+const loot_scene = preload("res://scenes/mechanics/LootDrop.tscn")
 
-var loot_scene := preload("res://scenes/mechanics/LootDrop.tscn")
+func _ready() -> void:
+	gravity_scale = 0
+	contact_monitor = true
+	max_contacts_reported = 8
 
-func _ready():
-	if size_index == -1:
+	# Sprite aleatorio
+	if size_index < 0:
 		size_index = randi() % SPRITES.size()
-
 	sprite.texture = SPRITES[size_index]
 
-	var shape = CircleShape2D.new()
-	shape.radius = sprite.texture.get_width() * 0.4
-	collision.shape = shape
-
-	if asteroid_material.has("name"):
-		durability = asteroid_material.durability
-		loot = {asteroid_material.name: randi_range(10, 50)}
-		sprite.modulate = asteroid_material.color
+	# CollisionShape para la nave
+	if collision_player_shape:
+		if collision_player_shape.shape == null:
+			var s = CircleShape2D.new()
+			s.radius = sprite.texture.get_width() * 0.4
+			collision_player_shape.shape = s
 	else:
-		durability = 100
-		loot = {"iron": 25}
-		sprite.modulate = Color(1, 1, 1)
+		push_error("Asteroid.gd: no se encontró CollisionPlayer")
 
-	rotation_speed = randf_range(-1.0, 1.0)
-	z_index = 10
+	# Durabilidad, loot y color
+	if asteroid_material.has("durability"):
+		durability = asteroid_material.durability
+	if asteroid_material.has("name"):
+		loot = { asteroid_material.name: randi_range(10, 50) }
+		sprite.modulate = asteroid_material.color
+
+	# Daño según durabilidad (2–4)
+	damage = clamp(int(durability / 50), 2, 4)
+
+	# Conectamos solo la señal de choque con la nave
+	connect("body_entered", Callable(self, "_on_body_entered"))
+
+	angular_velocity = randf_range(-1.0, 1.0)
 	add_to_group("asteroids")
-	connect("area_entered", Callable(self, "_on_area_entered"))
+	z_index = 10
 
-	chunk_manager = get_tree().get_root().get_node("Main/SectorChunkManager")
-	current_chunk_coords = chunk_manager.get_chunk_coords(global_position)
+	# Chunk manager
+	chunk_manager = get_tree().get_root().get_node_or_null("Main/SectorChunkManager")
+	if chunk_manager:
+		current_chunk_coords = chunk_manager.get_chunk_coords(global_position)
 
-func _process(delta):
-	position += velocity * delta
-	rotation += rotation_speed * delta
+func _physics_process(_delta: float) -> void:
+	if chunk_manager:
+		var nc = chunk_manager.get_chunk_coords(global_position)
+		if nc != current_chunk_coords and chunk_manager.active_chunks.has(nc):
+			chunk_manager.transfer_asteroid_to_chunk(self, nc)
+			current_chunk_coords = nc
 
-	var new_chunk_coords = chunk_manager.get_chunk_coords(global_position)
-	if new_chunk_coords != current_chunk_coords:
-		if chunk_manager.active_chunks.has(new_chunk_coords):
-			chunk_manager.transfer_asteroid_to_chunk(self, new_chunk_coords)
-			current_chunk_coords = new_chunk_coords
+func _on_body_entered(body: Node) -> void:
+	# Choque con la nave
+	if body.is_in_group("player") and body.has_method("apply_damage"):
+		body.apply_damage(damage)
 
-func _on_area_entered(area):
-	if area.is_in_group("bullets"):
-		durability -= 50
-		if durability <= 0:
-			destroy()
+func apply_bullet_damage(amount: int) -> void:
+	# Llamado por la bala cuando impacta
+	durability -= amount
+	if durability <= 0:
+		_destroy()
 
-func destroy():
-	# ✅ Emitimos la señal y destruimos el nodo
+func _destroy() -> void:
 	emit_signal("destroyed")
-
-	var spawn_pos := to_global(Vector2.ZERO)
-	var parent := get_tree().get_root()
-	for resource in loot.keys():
-		var drop := loot_scene.instantiate()
+	var spawn_pos = to_global(Vector2.ZERO)
+	for res_name in loot.keys():
+		var drop = loot_scene.instantiate()
 		drop.global_position = spawn_pos
-		drop.setup_resource(resource)
-		parent.call_deferred("add_child", drop)
-
+		drop.setup_resource(res_name)
+		get_tree().get_root().call_deferred("add_child", drop)
 	queue_free()

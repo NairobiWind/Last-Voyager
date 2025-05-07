@@ -1,3 +1,4 @@
+# res://scripts/utilities/AsteroidResources.gd
 extends Node
 
 const MATERIALS := {
@@ -44,19 +45,31 @@ const MATERIALS := {
 }
 
 func get_random_material(rng: RandomNumberGenerator) -> Dictionary:
-	var material_keys := MATERIALS.keys()
-	var total_weight := 0.0
+	var material_keys: Array = MATERIALS.keys()
+	var total_weight: float = 0.0
 	for key in material_keys:
 		total_weight += MATERIALS[key]["rarity"]
 
-	var pick = rng.randf_range(0.0, total_weight)
-	var acc := 0.0
+	var pick: float = rng.randf_range(0.0, total_weight)
+	var acc: float = 0.0
 
 	for key in material_keys:
 		acc += MATERIALS[key]["rarity"]
 		if pick <= acc:
-			var material = MATERIALS[key].duplicate()
+			var material: Dictionary = MATERIALS[key].duplicate(true)
 			material["name"] = key
+			# Calcular damage basado en durabilidad
+			var d: int = int(material["durability"])
+			if d <= 80:
+				material["damage"] = 2
+			elif d <= 180:
+				material["damage"] = 3
+			else:
+				material["damage"] = 4
 			return material
 
-	return MATERIALS["iron"].duplicate()
+	# Fallback a iron
+	var fallback: Dictionary = MATERIALS["iron"].duplicate(true)
+	fallback["name"] = "iron"
+	fallback["damage"] = 2
+	return fallback

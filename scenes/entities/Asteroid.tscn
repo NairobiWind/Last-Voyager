@@ -1,16 +1,24 @@
-[gd_scene load_steps=3 format=3 uid="uid://d27kl5fbom2au"]
+[gd_scene load_steps=4 format=3 uid="uid://d27kl5fbom2au"]
 
 [ext_resource type="Script" uid="uid://dcsa47jxmq7jc" path="res://scripts/entities/asteroid.gd" id="1_rxm0u"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_rxm0u"]
 radius = 65.0308
 
-[node name="Asteroid" type="Area2D" groups=["asteroids"]]
+[sub_resource type="CircleShape2D" id="CircleShape2D_ti43n"]
+radius = 45.0
+
+[node name="Asteroid" type="RigidBody2D" groups=["asteroids"]]
 collision_layer = 2
-collision_mask = 8
+collision_mask = 9
 script = ExtResource("1_rxm0u")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="ColisionDestruction" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_rxm0u")
+
+[node name="CollisionPlayer" type="CollisionShape2D" parent="."]
+visibility_layer = 2
+shape = SubResource("CircleShape2D_ti43n")
+debug_color = Color(0.866659, 0.258056, 0.617285, 0.42)

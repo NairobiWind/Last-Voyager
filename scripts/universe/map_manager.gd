@@ -1,3 +1,4 @@
+# res://scripts/managers/MapManager.gd
 extends Node
 
 # Guarda los chunks descubiertos (clave = "x,y")

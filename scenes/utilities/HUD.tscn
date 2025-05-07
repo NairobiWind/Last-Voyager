@@ -12,11 +12,23 @@ custom_minimum_size = Vector2(0, 50)
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -400.0
+offset_left = -700.0
 offset_top = 20.0
 offset_right = 1100.0
 offset_bottom = 120.0
 grow_horizontal = 2
+
+[node name="LifeLabel" type="RichTextLabel" parent="ScreenStats"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+theme = ExtResource("2_d3ol0")
+scroll_active = false
+
+[node name="DefenseLabel" type="RichTextLabel" parent="ScreenStats"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+theme = ExtResource("2_d3ol0")
+scroll_active = false
 
 [node name="FuelLabel" type="RichTextLabel" parent="ScreenStats"]
 custom_minimum_size = Vector2(150, 0)

@@ -1,30 +1,29 @@
 # res://scenes/ship/bullet.gd
 extends Area2D
 
-@export var speed: float = 1000.0
+@export var speed: float    = 1000.0
 @export var lifetime: float = 4.0
 
 var velocity: Vector2 = Vector2.ZERO
 var time_passed := 0.0
 var target_position: Vector2 = Vector2.ZERO
-var direction: Vector2
 
 func _ready() -> void:
 	z_index = 10
 	add_to_group("bullets")
-	# Calcula la dirección usando target_position asignado por PlayerShip
-	direction = (target_position - global_position).normalized()
-	velocity  = direction * speed
-	connect("area_entered", Callable(self, "_on_area_entered"))
+	velocity = (target_position - global_position).normalized() * speed
+	# Conectamos con el cuerpo para detectar RigidBody2D
+	connect("body_entered", Callable(self, "_on_body_entered"))
 
 func _process(delta: float) -> void:
 	time_passed += delta
 	position += velocity * delta
-	# Ajusta la rotación hacia la trayectoria
 	rotation = lerp_angle(rotation, velocity.angle(), 10.0 * delta)
 	if time_passed > lifetime:
 		queue_free()
 
-func _on_area_entered(area: Node) -> void:
-	if area.is_in_group("asteroids"):
+func _on_body_entered(body: Node) -> void:
+	if body.is_in_group("asteroids") and body.has_method("apply_bullet_damage"):
+		# Aplicamos 50 puntos de daño por bala
+		body.apply_bullet_damage(50)
 		queue_free()
