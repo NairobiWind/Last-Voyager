@@ -1,40 +1,48 @@
-# res://scripts/utilities/HUD.gd
 extends CanvasLayer
+class_name HUD
 
-@onready var fuel_label        = $ScreenStats/FuelLabel
-@onready var iron_label        = $ScreenStats/IronLabel
-@onready var nickel_label      = $ScreenStats/NickelLabel
-@onready var silicon_label     = $ScreenStats/SiliconLabel
-@onready var aluminum_label    = $ScreenStats/AluminumLabel
-@onready var hydrogen_label    = $ScreenStats/HydrogenLabel
-@onready var sodium_label      = $ScreenStats/SodiumLabel
-@onready var palladium_label   = $ScreenStats/PalladiumLabel
-@onready var dark_matter_label = $ScreenStats/DarkMatterLabel
+# Referencias a las etiquetas de stats
+@onready var fuel_label    = $ScreenStats/fuel_row/FuelLabel
+@onready var life_label    = $ScreenStats/life_row/LifeLabel
+@onready var defense_label = $ScreenStats/defense_row/DefenseLabel
 
-# Nodos nuevos (crea estos dos Label bajo ScreenStats)
-@onready var life_label        = $ScreenStats/LifeLabel
-@onready var defense_label     = $ScreenStats/DefenseLabel
+# Botón de menú (está directamente en el HUD)
+@onready var menu_button   = $MenuButton
 
-# Referencia a la nave para leer health/defense
-@onready var player            = get_node("/root/Main/PlayerShip")  
+# Mensaje de muerte
+@onready var game_over_label = $GameOverLabel
+
+# Fuente de stats
+var player_stats: Node = null
+var death_handled := false
+
+func _ready() -> void:
+	game_over_label.visible = false
+	menu_button.connect("pressed", Callable(self, "_on_menu_button_pressed"))
+
+func set_stats_source(_player: Node, p_stats: Node) -> void:
+	player_stats = p_stats
 
 func _process(_delta: float) -> void:
-	# Fuel y loot
-	fuel_label.text = "🔋 %.1f" % GameStats.fuel
-	_update_loot_labels()
+	if player_stats:
+		fuel_label.text    = " %.1f"   % player_stats.fuel
+		life_label.text    = " %d/%d"  % [player_stats.health, player_stats.max_health]
+		defense_label.text = " %.1fx"  % player_stats.defense_factor
 
-	# Vida y defensa
-	if player:
-		life_label.text    = "❤️ %d/%d"  % [player.health, player.max_health]
-		defense_label.text = "🛡 %.1fx"  % player.defense_factor
+		if player_stats.health <= 0:
+			_on_player_death()
 
-func _update_loot_labels() -> void:
-	var inv = GameState.inventory
-	iron_label.text        = "Fe: %d"  % inv.get("iron", 0)
-	nickel_label.text      = "Ni: %d"  % inv.get("nickel", 0)
-	silicon_label.text     = "Si: %d"  % inv.get("silicon", 0)
-	aluminum_label.text    = "Al: %d"  % inv.get("aluminum", 0)
-	hydrogen_label.text    = "H: %d"   % inv.get("hydrogen", 0)
-	sodium_label.text      = "Na: %d"  % inv.get("sodium", 0)
-	palladium_label.text   = "Pd: %d"  % inv.get("palladium", 0)
-	dark_matter_label.text = "🟪: %d" % inv.get("dark_matter", 0)
+func _on_menu_button_pressed() -> void:
+	GameState.save_state()
+	get_tree().change_scene_to_file("res://scenes/ui/StartMenu.tscn") # Ajusta la ruta si es diferente
+
+func _on_player_death() -> void:
+	if death_handled:
+		return
+	death_handled = true
+
+	game_over_label.visible = true
+	print("💀 El jugador ha muerto")
+
+	await get_tree().create_timer(2.0).timeout
+	get_tree().change_scene_to_file("res://scenes/ui/StartMenu.tscn")  # Ajusta si cambia

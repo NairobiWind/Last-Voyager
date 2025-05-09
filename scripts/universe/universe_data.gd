@@ -20,7 +20,7 @@ func get_current_chunk_cache() -> Dictionary:
 func get_chunk_data(chunk_coords: Vector2i) -> Dictionary:
 	var cache = get_current_chunk_cache()
 	if cache.has(chunk_coords):
-		print("✅ Caché usada para", current_universe_id, chunk_coords)
+		#print("✅ Caché usada para", current_universe_id, chunk_coords)
 		return cache[chunk_coords]
 
 	var rng = RandomNumberGenerator.new()

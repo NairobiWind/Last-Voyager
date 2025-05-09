@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://b2ebe47dm58xv"]
+
+[ext_resource type="Script" uid="uid://cx1ded5gcqpfo" path="res://scripts/utilities/mini_map.gd" id="2_ykb62"]
+
+[node name="UILayerTop" type="CanvasLayer"]
+layer = 2
+offset = Vector2(2000, 0)
+transform = Transform2D(1, 0, 0, 1, 2000, 0)
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="MiniMap" type="Control" parent="Control"]
+anchors_preset = 0
+scale = Vector2(1.7, 1.7)
+script = ExtResource("2_ykb62")

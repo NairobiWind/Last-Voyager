@@ -1,85 +1,110 @@
-[gd_scene load_steps=3 format=3 uid="uid://cph362uajlinb"]
+[gd_scene load_steps=7 format=3 uid="uid://cph362uajlinb"]
 
 [ext_resource type="Script" uid="uid://d2im3shfoylch" path="res://scripts/utilities/HUD.gd" id="1_j1v83"]
 [ext_resource type="Theme" uid="uid://dvo8i7cbhsbhm" path="res://scenes/ui/scxreen_text_theme.tres" id="2_d3ol0"]
+[ext_resource type="Texture2D" uid="uid://d151jwvyl3cui" path="res://assets/sprites/HUD/stats/shield.png" id="2_mnddr"]
+[ext_resource type="Texture2D" uid="uid://b12wu37kr65hc" path="res://assets/sprites/HUD/stats/battery.png" id="4_6vppj"]
+[ext_resource type="Texture2D" uid="uid://3t0lx30lp7tc" path="res://assets/sprites/HUD/stats/life.png" id="5_77i8e"]
+[ext_resource type="Texture2D" uid="uid://dmf1i4solsb2j" path="res://icon.svg" id="6_6vppj"]
 
 [node name="HUD" type="CanvasLayer"]
+layer = 6
 script = ExtResource("1_j1v83")
 
-[node name="ScreenStats" type="HBoxContainer" parent="."]
+[node name="ScreenStats" type="Control" parent="."]
 z_index = 40
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 3
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -700.0
-offset_top = 20.0
-offset_right = 1100.0
-offset_bottom = 120.0
+offset_left = -330.0
+offset_top = 30.0
+offset_right = 270.0
+offset_bottom = 90.0
 grow_horizontal = 2
 
-[node name="LifeLabel" type="RichTextLabel" parent="ScreenStats"]
-custom_minimum_size = Vector2(150, 0)
+[node name="defense_row" type="HBoxContainer" parent="ScreenStats"]
+layout_mode = 0
+offset_right = 200.0
+offset_bottom = 42.0
+theme_override_constants/separation = 15
+
+[node name="TextureRect" type="TextureRect" parent="ScreenStats/defense_row"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("2_mnddr")
+expand_mode = 2
+
+[node name="DefenseLabel" type="RichTextLabel" parent="ScreenStats/defense_row"]
+custom_minimum_size = Vector2(150, 20)
 layout_mode = 2
 theme = ExtResource("2_d3ol0")
+theme_override_constants/table_v_separation = 0
+theme_override_constants/table_h_separation = 0
+theme_override_constants/line_separation = 0
 scroll_active = false
 
-[node name="DefenseLabel" type="RichTextLabel" parent="ScreenStats"]
+[node name="fuel_row" type="HBoxContainer" parent="ScreenStats"]
+layout_mode = 2
+offset_left = 286.0
+offset_right = 486.0
+offset_bottom = 42.0
+theme_override_constants/separation = 15
+
+[node name="FuelIcon" type="TextureRect" parent="ScreenStats/fuel_row"]
+layout_mode = 2
+texture = ExtResource("4_6vppj")
+expand_mode = 2
+
+[node name="FuelLabel" type="RichTextLabel" parent="ScreenStats/fuel_row"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 theme = ExtResource("2_d3ol0")
+theme_override_constants/table_h_separation = 0
+theme_override_constants/line_separation = 0
 scroll_active = false
 
-[node name="FuelLabel" type="RichTextLabel" parent="ScreenStats"]
+[node name="life_row" type="HBoxContainer" parent="ScreenStats"]
+layout_mode = 2
+offset_left = 572.0
+offset_right = 772.0
+offset_bottom = 43.0
+theme_override_constants/separation = 15
+
+[node name="LifeIcon" type="TextureRect" parent="ScreenStats/life_row"]
+layout_mode = 2
+texture = ExtResource("5_77i8e")
+expand_mode = 2
+
+[node name="LifeLabel" type="RichTextLabel" parent="ScreenStats/life_row"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 theme = ExtResource("2_d3ol0")
+theme_override_constants/table_h_separation = 0
+theme_override_constants/line_separation = 0
 scroll_active = false
 
-[node name="IronLabel" type="RichTextLabel" parent="ScreenStats"]
-custom_minimum_size = Vector2(150, 0)
-layout_mode = 2
-theme = ExtResource("2_d3ol0")
-scroll_active = false
+[node name="MenuButton" type="Button" parent="."]
+offset_left = 30.0
+offset_top = 30.0
+offset_right = 166.0
+offset_bottom = 166.0
+icon = ExtResource("6_6vppj")
 
-[node name="NickelLabel" type="RichTextLabel" parent="ScreenStats"]
-custom_minimum_size = Vector2(150, 0)
-layout_mode = 2
-theme = ExtResource("2_d3ol0")
-scroll_active = false
-
-[node name="SiliconLabel" type="RichTextLabel" parent="ScreenStats"]
-custom_minimum_size = Vector2(150, 0)
-layout_mode = 2
-theme = ExtResource("2_d3ol0")
-scroll_active = false
-
-[node name="AluminumLabel" type="RichTextLabel" parent="ScreenStats"]
-custom_minimum_size = Vector2(150, 0)
-layout_mode = 2
-theme = ExtResource("2_d3ol0")
-scroll_active = false
-
-[node name="HydrogenLabel" type="RichTextLabel" parent="ScreenStats"]
-custom_minimum_size = Vector2(150, 0)
-layout_mode = 2
-theme = ExtResource("2_d3ol0")
-scroll_active = false
-
-[node name="SodiumLabel" type="RichTextLabel" parent="ScreenStats"]
-custom_minimum_size = Vector2(150, 0)
-layout_mode = 2
-theme = ExtResource("2_d3ol0")
-scroll_active = false
-
-[node name="PalladiumLabel" type="RichTextLabel" parent="ScreenStats"]
-custom_minimum_size = Vector2(150, 0)
-layout_mode = 2
-theme = ExtResource("2_d3ol0")
-scroll_active = false
-
-[node name="DarkMatterLabel" type="RichTextLabel" parent="ScreenStats"]
-custom_minimum_size = Vector2(150, 0)
-layout_mode = 2
-theme = ExtResource("2_d3ol0")
-scroll_active = false
+[node name="GameOverLabel" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -46.0
+offset_top = -11.5
+offset_right = 46.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 100
+text = "GAME OVER"
+horizontal_alignment = 1
+vertical_alignment = 1

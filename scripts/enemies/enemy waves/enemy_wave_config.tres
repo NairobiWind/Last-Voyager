@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WaveConfig" load_steps=5 format=3 uid="uid://b0f2x5uajoq03"]
+
+[ext_resource type="Script" uid="uid://duxprpykpn47b" path="res://scripts/enemies/enemy waves/enemy_type.gd" id="1_ag2p4"]
+[ext_resource type="PackedScene" uid="uid://k11yct2n0hs7" path="res://scenes/enemies/EnemyShip.tscn" id="2_bt4g4"]
+[ext_resource type="Script" uid="uid://ttras8qx3mip" path="res://scripts/enemies/enemy waves/enemy_wave_config.gd" id="3_axb5m"]
+
+[sub_resource type="Resource" id="Resource_nr8b6"]
+script = ExtResource("1_ag2p4")
+scene = ExtResource("2_bt4g4")
+cost = 50.0
+defense = 1.0
+metadata/_custom_type_script = "uid://duxprpykpn47b"
+
+[resource]
+script = ExtResource("3_axb5m")
+initial_delay = 2.0
+base_interval = 30.0
+interval_increment = 5.0
+waves_count = 6
+base_budget = 100.0
+budget_growth = 2.0
+enemy_types = Array[ExtResource("1_ag2p4")]([SubResource("Resource_nr8b6"), null])
+metadata/_custom_type_script = "uid://ttras8qx3mip"

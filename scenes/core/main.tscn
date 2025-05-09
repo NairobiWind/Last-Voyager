@@ -1,47 +1,74 @@
-[gd_scene load_steps=9 format=3 uid="uid://djtxg1q6jo8qq"]
+[gd_scene load_steps=15 format=3 uid="uid://djtxg1q6jo8qq"]
 
 [ext_resource type="Script" uid="uid://4t00hty7gk4" path="res://scripts/debug/main_debug.gd" id="1_ebys2"]
 [ext_resource type="PackedScene" uid="uid://dmlexxcah3jeu" path="res://scenes/ship/PlayerShip.tscn" id="1_i4cec"]
 [ext_resource type="PackedScene" uid="uid://cph362uajlinb" path="res://scenes/utilities/HUD.tscn" id="2_44pk5"]
 [ext_resource type="PackedScene" uid="uid://bu1e0j7dcqn0x" path="res://scenes/ui/VirtualJoystic.tscn" id="2_jpx65"]
-[ext_resource type="PackedScene" uid="uid://26c8i766jweu" path="res://scenes/ui/MiniMap.tscn" id="2_phv0v"]
+[ext_resource type="PackedScene" uid="uid://b2ebe47dm58xv" path="res://scenes/ui/UILayerTop.tscn" id="2_ocd3q"]
 [ext_resource type="Script" uid="uid://7dnsfn1tthd5" path="res://scripts/world/chunk_manager.gd" id="4_b6u03"]
 [ext_resource type="Script" uid="uid://sfr50qbqqkea" path="res://scripts/utilities/mobile_input_manager.gd" id="4_phv0v"]
 [ext_resource type="Script" uid="uid://cyewhriblvum4" path="res://scripts/universe/sector_chunk_manager.gd" id="5_jvmw0"]
+[ext_resource type="PackedScene" uid="uid://k11yct2n0hs7" path="res://scenes/enemies/EnemyShip.tscn" id="10_fu2j5"]
+[ext_resource type="PackedScene" uid="uid://c0i17iitxds7t" path="res://scenes/enemies/TimedEnemySpawner.tscn" id="11_ocd3q"]
+[ext_resource type="Script" uid="uid://ttras8qx3mip" path="res://scripts/enemies/enemy waves/enemy_wave_config.gd" id="12_5xrq8"]
+[ext_resource type="Script" uid="uid://duxprpykpn47b" path="res://scripts/enemies/enemy waves/enemy_type.gd" id="12_kbh5f"]
+
+[sub_resource type="Resource" id="Resource_5xrq8"]
+script = ExtResource("12_kbh5f")
+scene = ExtResource("10_fu2j5")
+cost = 50.0
+defense = 1.0
+metadata/_custom_type_script = "uid://duxprpykpn47b"
+
+[sub_resource type="Resource" id="Resource_kbh5f"]
+script = ExtResource("12_5xrq8")
+initial_delay = 10.0
+base_interval = 50.0
+interval_increment = 5.0
+waves_count = 6
+base_budget = 100.0
+budget_growth = 1.5
+enemy_types = Array[ExtResource("12_kbh5f")]([SubResource("Resource_5xrq8")])
+metadata/_custom_type_script = "uid://ttras8qx3mip"
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_ebys2")
 
-[node name="MiniMap" parent="." instance=ExtResource("2_phv0v")]
-
-[node name="DebugCamera" type="Camera2D" parent="."]
-process_mode = 4
-physics_interpolation_mode = 2
-zoom = Vector2(0.2, 0.2)
-
 [node name="HUD" parent="." instance=ExtResource("2_44pk5")]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="FPSLabel" type="Label" parent="CanvasLayer"]
+[node name="FPSLabel" type="Label" parent="HUD"]
+visible = false
 offset_left = 40.0
 offset_top = 30.0
 offset_right = 80.0
 offset_bottom = 53.0
 
-[node name="MobileInputManager" type="Node2D" parent="CanvasLayer"]
-script = ExtResource("4_phv0v")
-joystick_path = NodePath("../VirtualJoystick")
-player_ship_path = NodePath("../../PlayerShip")
+[node name="VirtualJoystick" parent="HUD" instance=ExtResource("2_jpx65")]
 
-[node name="VirtualJoystick" parent="CanvasLayer" instance=ExtResource("2_jpx65")]
+[node name="MobileInputManager" type="Node" parent="."]
+script = ExtResource("4_phv0v")
+metadata/_custom_type_script = "uid://sfr50qbqqkea"
+
+[node name="UILayerTop" parent="." instance=ExtResource("2_ocd3q")]
+layer = 5
+visible = false
+offset = Vector2(0, 0)
+transform = Transform2D(1, 0, 0, 1, 0, 0)
 
 [node name="PlayerShip" parent="." instance=ExtResource("1_i4cec")]
-joystick_path = NodePath("../CanvasLayer/VirtualJoystick")
-touchui_path = NodePath("../CanvasLayer/VirtualJoystick")
 
 [node name="SectorChunkManager" type="Node2D" parent="."]
 script = ExtResource("5_jvmw0")
 
 [node name="ChunkManager" type="Node2D" parent="."]
 script = ExtResource("4_b6u03")
+
+[node name="DebugCamera" type="Camera2D" parent="."]
+zoom = Vector2(0.2, 0.2)
+
+[node name="EnemyShip" parent="." instance=ExtResource("10_fu2j5")]
+position = Vector2(500, 0)
+
+[node name="TimedEnemySpawner" parent="." instance=ExtResource("11_ocd3q")]
+config = SubResource("Resource_kbh5f")
+player_path = NodePath("../PlayerShip")

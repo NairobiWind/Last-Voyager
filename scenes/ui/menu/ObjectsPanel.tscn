@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://c7bymiry4870p"]
+
+[node name="MenuObjects" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HSplitContainer" type="HSplitContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -2100.0
+offset_bottom = 1080.0
+grow_horizontal = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HSplitContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+
+[node name="LeftPanel" type="VBoxContainer" parent="HSplitContainer"]
+custom_minimum_size = Vector2(1300, 1080)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HSplitContainer/LeftPanel"]
+layout_mode = 2
+text = "RECURSOS
+"
+
+[node name="ItemList" type="ItemList" parent="HSplitContainer/LeftPanel"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="HSplitContainer/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RightPanel" type="VBoxContainer" parent="HSplitContainer"]
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="HSplitContainer/RightPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HSplitContainer/RightPanel"]
+layout_mode = 2
+text = "NOMBRE RECURSO"
+
+[node name="RichTextLabel" type="RichTextLabel" parent="HSplitContainer/RightPanel"]
+layout_mode = 2
+text = "Descripción del recurso-"

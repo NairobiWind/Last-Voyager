@@ -11,6 +11,9 @@ var multimesh_instance: MultiMeshInstance2D
 # 🌌 Cache global compartida
 static var multimesh_cache: Dictionary = {}
 
+# Toggle para debug: dibujar bordes y etiquetas de chunks
+@export var show_debug: bool = false
+
 func _ready():
 	if multimesh_cache.has(chunk_coords):
 		# ✅ Reutilizar multimesh del cache
@@ -22,7 +25,9 @@ func _ready():
 		# 🚀 Generar y guardar en cache
 		generate_stars()
 	
-	queue_redraw()
+	# Si debug activado, forzar redraw
+	if show_debug:
+		queue_redraw()
 
 func generate_stars():
 	multimesh_instance = MultiMeshInstance2D.new()
@@ -61,18 +66,24 @@ func generate_stars():
 	multimesh_cache[chunk_coords] = mm
 
 func _draw():
-	draw_chunk_border()
-	draw_chunk_label()
-
-func draw_chunk_border():
+	if not show_debug:
+		return
+	# Dibujar borde del chunk
 	draw_rect(
 		Rect2(Vector2.ZERO, Vector2(CHUNK_SIZE, CHUNK_SIZE)),
 		Color(1, 1, 1, 0.1),
 		false,
 		2.0
 	)
-
-func draw_chunk_label():
+	# Etiqueta de coordenadas
 	var font := ThemeDB.fallback_font
 	var label := "Chunk: %d, %d" % [chunk_coords.x, chunk_coords.y]
-	draw_string(font, Vector2(20, 40), label)
+	var text_pos := Vector2(20, 40)
+	draw_string(font, text_pos, label)
+
+func _process(_delta: float) -> void:
+	# Si togglean show_debug en tiempo de ejecución, actualizar
+	if Engine.is_editor_hint():
+		return
+	if show_debug:
+		queue_redraw()

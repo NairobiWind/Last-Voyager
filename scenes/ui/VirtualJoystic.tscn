@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bu1e0j7dcqn0x"]
 
-[ext_resource type="Script" uid="uid://cs8bop2urgdvj" path="res://scripts/utilities/VirtualJoystic.gd" id="1_603cg"]
+[ext_resource type="Script" uid="uid://cs8bop2urgdvj" path="res://scripts/utilities/virtual_joystick.gd" id="1_603cg"]
 
 [node name="VirtualJoysticTest" type="Control"]
 layout_mode = 3

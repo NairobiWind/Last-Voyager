@@ -7,9 +7,6 @@
 [node name="Planet" type="Node2D"]
 script = ExtResource("1_5y7xe")
 
-[node name="NameLabel" type="RichTextLabel" parent="."]
-offset_right = 1.0
-
 [node name="IlluminationLayer" type="Sprite2D" parent="."]
 material = ExtResource("2_1408b")
 
@@ -22,3 +19,14 @@ visible = false
 material = ExtResource("3_notw0")
 offset_right = 1024.0
 offset_bottom = 1024.0
+
+[node name="NameLabel" type="RichTextLabel" parent="."]
+z_index = 4
+custom_minimum_size = Vector2(100, 20)
+anchors_preset = -1
+offset_left = -100.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
+vertical_alignment = 1

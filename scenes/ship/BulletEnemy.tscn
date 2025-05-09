@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://dvbmchrn82ovk"]
+
+[ext_resource type="Script" uid="uid://dkml46sycrxvv" path="res://scripts/enemies/mechanics/enemy_bullet.gd" id="1_63oud"]
+[ext_resource type="Texture2D" uid="uid://cvupkl3gpekqh" path="res://assets/sprites/ship/kenney_space-shooter-redux/Spritesheet/sheet.png" id="2_u133f"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gbfim"]
+size = Vector2(10, 37)
+
+[node name="EnemyBullet" type="Area2D"]
+collision_layer = 16
+collision_mask = 5
+script = ExtResource("1_63oud")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+rotation = 1.5708
+texture = ExtResource("2_u133f")
+offset = Vector2(0, -18)
+region_enabled = true
+region_rect = Rect2(856, 984, 9, 36)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(18.5, -2.18557e-08)
+rotation = 1.5708
+shape = SubResource("RectangleShape2D_gbfim")

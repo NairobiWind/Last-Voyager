@@ -1,0 +1,49 @@
+[gd_scene load_steps=8 format=3 uid="uid://k11yct2n0hs7"]
+
+[ext_resource type="Script" uid="uid://cuy7b8h1e50f" path="res://scripts/enemies/enemy_ship.gd" id="1_7khps"]
+[ext_resource type="Texture2D" uid="uid://34s3mevmoctr" path="res://assets/sprites/ship/Kenny Simple Space/PNG/Retina/satellite_B.png" id="2_bubpm"]
+[ext_resource type="Script" uid="uid://c3py1cvxvwich" path="res://scripts/enemies/mechanics/enemy_movement.gd" id="3_t0sx4"]
+[ext_resource type="Script" uid="uid://dgvsn3wus6kks" path="res://scripts/enemies/mechanics/enemy_shoot.gd" id="4_jhvp7"]
+[ext_resource type="PackedScene" uid="uid://dvbmchrn82ovk" path="res://scenes/ship/BulletEnemy.tscn" id="5_2vjnt"]
+[ext_resource type="Script" uid="uid://dby2f2ihd2dm7" path="res://scripts/enemies/mechanics/enemy_stats.gd" id="5_lmpy1"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0x1i0"]
+size = Vector2(108, 108)
+
+[node name="EnemyShip" type="CharacterBody2D" groups=["enemies"]]
+collision_layer = 2
+collision_mask = 9
+script = ExtResource("1_7khps")
+movement_path = NodePath("MovementModule")
+shoot_path = NodePath("ShootModule")
+stats_path = NodePath("StatsModule")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+rotation = 1.5708
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("2_bubpm")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_0x1i0")
+
+[node name="MovementModule" type="Node" parent="."]
+script = ExtResource("3_t0sx4")
+speed = 500.0
+min_distance = 800.0
+max_distance = 400.0
+acceleration = 300.0
+rotation_speed = 2.0
+dodge_amplitude = 500.0
+dodge_frequency = 0.2
+
+[node name="ShootModule" type="Node" parent="."]
+script = ExtResource("4_jhvp7")
+bullet_scene = ExtResource("5_2vjnt")
+fire_rate = 1.7
+muzzle_offset = Vector2(0, 0)
+
+[node name="StatsModule" type="Node" parent="."]
+script = ExtResource("5_lmpy1")
+
+[node name="ShootTimer" type="Timer" parent="StatsModule"]
+wait_time = 2.0

@@ -1,0 +1,90 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8kghl1at0p8e"]
+
+[ext_resource type="Script" uid="uid://ce2po431ngw2q" path="res://scripts/menu/main_menu.gd" id="1_ul53e"]
+[ext_resource type="Theme" uid="uid://dwj6wip7nmedj" path="res://scenes/ui/botones_main_menu.tres" id="2_wb0ko"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_ul53e")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 2400.0
+offset_bottom = 1080.0
+color = Color(0.383981, 0.0496052, 0.0502431, 1)
+
+[node name="MainContainer" type="HSplitContainer" parent="."]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Sidebar" type="VBoxContainer" parent="MainContainer"]
+custom_minimum_size = Vector2(300, 1080)
+layout_mode = 2
+alignment = 1
+
+[node name="BtnRecursos" type="Button" parent="MainContainer/Sidebar"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme = ExtResource("2_wb0ko")
+theme_override_font_sizes/font_size = 40
+text = "RECURSOS"
+
+[node name="BtnFabricacion" type="Button" parent="MainContainer/Sidebar"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme = ExtResource("2_wb0ko")
+text = "CREACIÓN"
+
+[node name="BtnMejoras" type="Button" parent="MainContainer/Sidebar"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme = ExtResource("2_wb0ko")
+text = "MEJORAS"
+
+[node name="BtnMaps" type="Button" parent="MainContainer/Sidebar"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme = ExtResource("2_wb0ko")
+text = "MAPA"
+
+[node name="BtnMisiones" type="Button" parent="MainContainer/Sidebar"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme = ExtResource("2_wb0ko")
+text = "MISIONES"
+
+[node name="BtnAjustes" type="Button" parent="MainContainer/Sidebar"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme = ExtResource("2_wb0ko")
+text = "AJUSTES"
+
+[node name="ContentArea" type="HSplitContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -2100.0
+offset_bottom = 1080.0
+grow_horizontal = 0
+
+[node name="PanelRecursos" type="PanelContainer" parent="ContentArea"]
+layout_mode = 2
+
+[node name="PanelFabricacion" type="PanelContainer" parent="ContentArea"]
+layout_mode = 2
+
+[node name="PanelMejoras" type="PanelContainer" parent="ContentArea"]
+layout_mode = 2
+
+[node name="PanelMapaGalaxia" type="PanelContainer" parent="ContentArea"]
+layout_mode = 2
+
+[node name="PanelMisiones" type="PanelContainer" parent="ContentArea"]
+layout_mode = 2
+
+[node name="PanelAjustes" type="PanelContainer" parent="ContentArea"]
+layout_mode = 2

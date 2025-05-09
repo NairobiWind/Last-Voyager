@@ -58,7 +58,8 @@ func _ready() -> void:
 		sprite.modulate = asteroid_material.color
 
 	# Daño según durabilidad (2–4)
-	damage = clamp(int(durability / 50), 2, 4)
+	damage = clamp(durability / 50.0, 2.0, 4.0)
+
 
 	# Conectamos solo la señal de choque con la nave
 	connect("body_entered", Callable(self, "_on_body_entered"))

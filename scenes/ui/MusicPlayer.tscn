@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8b3de57f3cii"]
+
+[ext_resource type="AudioStream" uid="uid://giwbppu4w6me" path="res://assets/audio/I am AI (Variation) - Song composed by AI  AIVA.mp3" id="1_vm20o"]
+
+[node name="MusicPlayer" type="AudioStreamPlayer"]
+stream = ExtResource("1_vm20o")
+autoplay = true

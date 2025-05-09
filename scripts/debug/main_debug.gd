@@ -1,78 +1,91 @@
-# res://scripts/MainDebug.gd
 extends Node2D
 class_name MainDebug
 
-@onready var fps_label:       Label      = $CanvasLayer/FPSLabel
-@onready var hud_canvas:      CanvasLayer = $CanvasLayer
-@onready var player_ship:     Node2D     = $PlayerShip
-@onready var player_camera:   Camera2D   = $PlayerShip/Camera2D
-@onready var debug_camera:    Camera2D   = $DebugCamera
+@onready var player_ship = $PlayerShip
+@onready var hud = $HUD
+@onready var joystick = hud.get_node("VirtualJoystick")
+@onready var stats = player_ship.get_node("PlayerStats")
+@onready var shoot = player_ship.get_node("PlayerShoot")
+@onready var movement = player_ship.get_node("PlayerMovement")
+@onready var camera = player_ship.get_node("Camera2D")
+@onready var debug_camera = $DebugCamera
+@onready var input_manager = $MobileInputManager
+@onready var fps_label = hud.get_node("FPSLabel")
+@onready var chunk_manager = $SectorChunkManager
 
-var debug_enabled:    bool   = false
-var debug_zoom_speed: float  = 0.1
-var time_accum:       float  = 0.0
+# MapManager como singleton (AutoLoad), no como nodo hijo
+var map_manager = MapManager
 
-func _ready() -> void:
-	GameState.connect("game_loaded", Callable(self, "_on_game_loaded"))
-	var loaded: bool = GameState.load_state()
-	if not loaded:
-		print("No se cargó partida previa.")
-	# Aseguramos que empezamos con la cámara del jugador
-	player_camera.make_current()
+@onready var ui_layer_top_scene = preload("res://scenes/ui/UILayerTop.tscn")
 
-func _on_game_loaded(success: bool) -> void:
-	if success:
-		player_ship.global_position = GameState.last_position
-		GameStats.fuel = GameState.last_fuel
+var debug_enabled := false
+var time_accum := 0.0
+const debug_zoom_speed := 0.1
+
+func _ready():
+	await get_tree().process_frame  # asegura que todos los nodos existen
+
+	# --- Setup base del jugador ---
+	movement.setup(player_ship, joystick, null, hud, stats)
+	shoot.ship = player_ship
+	shoot.player_stats = stats
+	shoot.hud = hud
+	shoot.bullet_scene = preload("res://scenes/ship/Bullet.tscn")
+
+	hud.set_stats_source(player_ship, stats)
+
+	if input_manager and not input_manager.is_connected("shoot_requested", Callable(player_ship, "_on_touch_shoot_requested")):
+		input_manager.connect("shoot_requested", Callable(player_ship, "_on_touch_shoot_requested"))
+	input_manager.joystick = joystick
+
+	player_ship.setup_external(hud, joystick, input_manager)
+
+	camera.make_current()
+
+	# --- Instanciar UI Layer Top y configurar MiniMap ---
+	var ui_layer_top_instance = ui_layer_top_scene.instantiate()
+	add_child(ui_layer_top_instance)
 
 func _process(delta: float) -> void:
-	# Toggle HUD
+	# Hotkeys debug
 	if Input.is_action_just_pressed("toggle_hud"):
-		hud_canvas.visible = not hud_canvas.visible
+		hud.visible = not hud.visible
 
-	# Toggle cámaras
 	if Input.is_action_just_pressed("toggle_camera"):
 		debug_enabled = not debug_enabled
 		if debug_enabled:
 			debug_camera.make_current()
 		else:
-			player_camera.make_current()
+			camera.make_current()
 
-	# Si está activa la cámara debug, que siga al jugador
 	if debug_enabled:
 		debug_camera.global_position = player_ship.global_position
-		# Zoom in/out con teclas
+
 		if Input.is_action_pressed("zoom_in"):
 			debug_camera.zoom -= Vector2.ONE * debug_zoom_speed * delta
+
 		if Input.is_action_pressed("zoom_out"):
 			debug_camera.zoom += Vector2.ONE * debug_zoom_speed * delta
 
-	# Estadísticas básicas
-	var fps        : int   = Engine.get_frames_per_second()
-	var nodes      : int   = get_tree().get_node_count()
-	var mem_static : float = Performance.get_monitor(Performance.MEMORY_STATIC)
-	var t_proc     : float = Performance.get_monitor(Performance.TIME_PROCESS)
-	var t_phys     : float = Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)
-	var draw_calls : int   = Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+		# Limitar zoom entre 0.2 y 5.0 en cada componente
+		var z: Vector2 = debug_camera.zoom
+		z.x = clamp(z.x, 0.2, 5.0)
+		z.y = clamp(z.y, 0.2, 5.0)
+		debug_camera.zoom = z
 
-	# Conteos de grupos
-	var asteroid_count : int = get_tree().get_nodes_in_group("asteroids").size()
-	var planet_count   : int = get_tree().get_nodes_in_group("planets").size()
 
-	# Montar texto
-	fps_label.text = "FPS: %d\n"                  % fps
-	fps_label.text += "Nodos: %d\n"               % nodes
-	fps_label.text += "DrawCalls: %d\n"           % draw_calls
-	fps_label.text += "Mem: %.2f MB\n"            % (mem_static/1048576.0)
-	fps_label.text += "P: %.2f ms  F: %.2f ms\n"  % [t_proc*1000.0, t_phys*1000.0]
-	fps_label.text += "Ast: %d  Pl: %d"           % [asteroid_count, planet_count]
 
-	# Log periódico
+
+	# Mostrar info rendimiento
+	var fps := Engine.get_frames_per_second()
+	var mem_static := Performance.get_monitor(Performance.MEMORY_STATIC)
+	var draw_calls := Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+
+	fps_label.text = "FPS: %d | DrawCalls: %d | Mem: %.1fMB" % [
+		fps, draw_calls, mem_static / 1048576.0
+	]
+
 	time_accum += delta
 	if time_accum >= 20.0:
 		time_accum = 0.0
 		print(fps_label.text)
-
-func _notification(what: int) -> void:
-	if what == Window.NOTIFICATION_WM_CLOSE_REQUEST:
-		GameState.save_state()

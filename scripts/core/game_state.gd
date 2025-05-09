@@ -23,9 +23,36 @@ var last_fuel: float = 100.0
 var active_asteroids: int = 0
 var regeneration_threshold: int = 100
 
+func _ready() -> void:
+	# Mostrar ruta real para depuración
+	print("💾 Ruta de guardado real: ", ProjectSettings.globalize_path(SAVE_PATH))
+	# Cargar estado al arrancar
+	load_state()
+
+
 func add_loot(resource_name: String, amount: int = 1) -> void:
 	inventory[resource_name] = inventory.get(resource_name, 0) + amount
 	print("📦 Recolectado: %s | Total: %d" % [resource_name, inventory[resource_name]])
+
+func reset_state() -> void:
+	# Restablecer valores a los predeterminados
+	for key in inventory.keys():
+		inventory[key] = 0
+	last_position = Vector2.ZERO
+	last_fuel = 100.0
+	active_asteroids = 0
+	regeneration_threshold = 100
+
+	# Eliminar archivo de guardado si existe
+	var dir = DirAccess.open("user://")
+	if dir:
+		var err = dir.remove("savegame.json")
+		if err != OK:
+			push_error("No se pudo eliminar “savegame.json”: error %d" % err)
+		else:
+			print("🗑️ Archivo eliminado: user://savegame.json")
+	else:
+		push_error("No se pudo abrir user:// para eliminar el fichero.")
 
 func save_state() -> bool:
 	var save_data: Dictionary = {
@@ -48,15 +75,17 @@ func load_state() -> bool:
 		print("📁 No se encontró archivo de guardado en %s" % SAVE_PATH)
 		emit_signal("game_loaded", false)
 		return false
+
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.READ)
 	if not file:
 		push_error("No se pudo abrir %s para lectura" % SAVE_PATH)
 		emit_signal("game_loaded", false)
 		return false
+
 	var content: String = file.get_as_text()
 	file.close()
 
-	var parser: JSON = JSON.new()
+	var parser := JSON.new()
 	var err: int = parser.parse(content)
 	if err != OK:
 		push_error("Error parseando JSON: %s en línea %d" % [parser.get_error_message(), parser.get_error_line()])
@@ -82,5 +111,8 @@ func load_state() -> bool:
 	return true
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		save_state()
+	match what:
+		NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_APPLICATION_PAUSED:
+			save_state()
+		NOTIFICATION_APPLICATION_RESUMED:
+			load_state()

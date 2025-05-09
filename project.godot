@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Last Voyager: Space Exploration"
-run/main_scene="uid://djtxg1q6jo8qq"
+run/main_scene="uid://ds7wn0um67pr7"
 config/features=PackedStringArray("4.4", "Mobile")
 boot_splash/bg_color=Color(0.00234459, 0.00234459, 0.00234459, 1)
 config/icon="res://icon.svg"
@@ -21,10 +21,10 @@ config/icon="res://icon.svg"
 UniverseData="*res://scripts/universe/universe_data.gd"
 PlanetResources="*res://scripts/resources/planet_resources.gd"
 AsteroidResources="*res://scripts/resources/asteroid_resources.gd"
-GameStats="*res://scripts/core/game_stats.gd"
 GameState="*res://scripts/core/game_state.gd"
 MapManager="*res://scripts/universe/map_manager.gd"
 InputModeManager="*res://scripts/utilities/input_mode_manager.gd"
+MusicPlayer="*res://scenes/ui/MusicPlayer.tscn"
 
 [display]
 
@@ -46,7 +46,7 @@ brake={
 ]
 }
 fire={
-"deadzone": 0.2,
+"deadzone": 0.21,
 "events": []
 }
 toggle_hud={
@@ -91,7 +91,7 @@ cam_right={
 }
 shoot={
 "deadzone": 0.2,
-"events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":2,"position":Vector2(317, 29),"global_position":Vector2(331, 102),"factor":1.0,"button_index":2,"canceled":false,"pressed":true,"double_click":false,"script":null)
+"events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":1,"position":Vector2(423, 7),"global_position":Vector2(437, 80),"factor":1.0,"button_index":1,"canceled":false,"pressed":true,"double_click":false,"script":null)
 ]
 }
 

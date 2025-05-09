@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3 uid="uid://c0i17iitxds7t"]
+
+[ext_resource type="Script" uid="uid://figfb2m82h2j" path="res://scripts/enemies/timed_enemy_spawner.gd" id="1_iupvf"]
+[ext_resource type="Script" uid="uid://duxprpykpn47b" path="res://scripts/enemies/enemy waves/enemy_type.gd" id="2_cksrk"]
+[ext_resource type="Script" uid="uid://ttras8qx3mip" path="res://scripts/enemies/enemy waves/enemy_wave_config.gd" id="2_jmedg"]
+
+[sub_resource type="Resource" id="Resource_cksrk"]
+script = ExtResource("2_jmedg")
+initial_delay = 2.0
+base_interval = 30.0
+interval_increment = 5.0
+waves_count = 10
+base_budget = 100.0
+budget_growth = 1.2
+enemy_types = Array[ExtResource("2_cksrk")]([])
+metadata/_custom_type_script = "uid://ttras8qx3mip"
+
+[node name="TimedEnemySpawner" type="Node2D"]
+script = ExtResource("1_iupvf")
+config = SubResource("Resource_cksrk")
+
+[node name="Timer" type="Timer" parent="."]

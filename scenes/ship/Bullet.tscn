@@ -3,12 +3,12 @@
 [ext_resource type="Script" uid="uid://ipryg3jxs1wy" path="res://scripts/ship/bullet.gd" id="1_0p5n5"]
 [ext_resource type="Texture2D" uid="uid://cvupkl3gpekqh" path="res://assets/sprites/ship/kenney_space-shooter-redux/Spritesheet/sheet.png" id="2_ud3on"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_gbfim"]
-size = Vector2(10, 37)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0p5n5"]
+size = Vector2(10, 36)
 
 [node name="Bullet" type="Area2D"]
 collision_layer = 8
-collision_mask = 2
+collision_mask = 22
 script = ExtResource("1_0p5n5")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
@@ -16,9 +16,9 @@ rotation = 1.5708
 texture = ExtResource("2_ud3on")
 offset = Vector2(0, -18)
 region_enabled = true
-region_rect = Rect2(858, 475, 9, 37)
+region_rect = Rect2(858, 475, 9, 36)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(18.5, -2.18557e-08)
+position = Vector2(18, 0)
 rotation = 1.5708
-shape = SubResource("RectangleShape2D_gbfim")
+shape = SubResource("RectangleShape2D_0p5n5")

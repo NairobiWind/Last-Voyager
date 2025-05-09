@@ -1,7 +1,13 @@
-[gd_scene load_steps=7 format=3 uid="uid://dmlexxcah3jeu"]
+[gd_scene load_steps=11 format=3 uid="uid://dmlexxcah3jeu"]
 
 [ext_resource type="Texture2D" uid="uid://dlqurfmbkuhpt" path="res://assets/sprites/ship/Kenny Simple Space/PNG/Retina/ship_I.png" id="1_4p7vw"]
 [ext_resource type="Script" uid="uid://bddih6nuqndlj" path="res://scripts/ship/player_ship.gd" id="1_n1yy0"]
+[ext_resource type="Script" uid="uid://bowu0pi6vqr36" path="res://scripts/mechanics/player_stats.gd" id="3_qu443"]
+[ext_resource type="Script" uid="uid://d2q7hplxj1md" path="res://scripts/mechanics/player_movement.gd" id="4_hjjr8"]
+[ext_resource type="Script" uid="uid://bqwy47bj0l6bj" path="res://scripts/mechanics/player_shoot.gd" id="5_7efn3"]
+[ext_resource type="Script" uid="uid://jwt6p333p6x7" path="res://scripts/ship/player_discovery.gd" id="7_7efn3"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_o57ru"]
 
 [sub_resource type="Gradient" id="Gradient_4p7vw"]
 offsets = PackedFloat32Array(0, 0.509091, 0.8, 1)
@@ -11,12 +17,11 @@ colors = PackedColorArray(0, 0, 0, 1, 0.724256, 0.171305, 0.126738, 1, 0.799373,
 gradient = SubResource("Gradient_4p7vw")
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_4p7vw"]
-particle_flag_disable_z = true
-emission_shape_offset = Vector3(-11, 0, 0)
-emission_shape_scale = Vector3(1, 5, 1)
+emission_shape = 3
+emission_box_extents = Vector3(1, 1, 1)
 angle_min = 118.8
 angle_max = 118.8
-direction = Vector3(-100, 0, 0)
+direction = Vector3(-0.5, 0, 0)
 spread = 20.0
 initial_velocity_min = 250.0
 initial_velocity_max = 300.0
@@ -27,10 +32,8 @@ scale_min = 3.0
 scale_max = 5.0
 color_ramp = SubResource("GradientTexture1D_n1yy0")
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_o57ru"]
-
-[node name="PlayerShip" type="CharacterBody2D"]
-collision_mask = 2
+[node name="PlayerShip" type="CharacterBody2D" groups=["Player"]]
+collision_mask = 18
 script = ExtResource("1_n1yy0")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
@@ -38,21 +41,11 @@ rotation = 1.5708
 texture = ExtResource("1_4p7vw")
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
-light_mask = 2
 rotation = 1.5708
 polygon = PackedVector2Array(0, -48, -32, 32, 0, 48, 32, 32)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position_smoothing_enabled = true
-
-[node name="ThrustParticles" type="GPUParticles2D" parent="."]
-show_behind_parent = true
-emitting = false
-amount = 50
-lifetime = 0.2
-speed_scale = 1.5
-local_coords = true
-process_material = SubResource("ParticleProcessMaterial_4p7vw")
 
 [node name="LootCollector" type="Area2D" parent="."]
 visibility_layer = 4
@@ -60,9 +53,26 @@ collision_layer = 2
 collision_mask = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="LootCollector"]
-light_mask = 2
-visibility_layer = 4
 scale = Vector2(5, 5)
 shape = SubResource("CircleShape2D_o57ru")
+
+[node name="ThrustParticles" type="GPUParticles2D" parent="."]
+show_behind_parent = true
+amount = 50
+lifetime = 0.3
+local_coords = true
+process_material = SubResource("ParticleProcessMaterial_4p7vw")
+
+[node name="PlayerShoot" type="Node" parent="."]
+script = ExtResource("5_7efn3")
+
+[node name="PlayerStats" type="Node" parent="."]
+script = ExtResource("3_qu443")
+
+[node name="PlayerMovement" type="Node" parent="."]
+script = ExtResource("4_hjjr8")
+
+[node name="PlayerDiscovery" type="Node" parent="."]
+script = ExtResource("7_7efn3")
 
 [connection signal="area_entered" from="LootCollector" to="." method="_on_loot_collector_area_entered"]
